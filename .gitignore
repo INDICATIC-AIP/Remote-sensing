@@ -1,0 +1,28 @@
+node_modules/
+download.log
+venv/
+.venv/
+__pycache__/
+organized_metadata.txt
+map/logs/
+API-NASAS/
+API-NASA/
+cosas codigo/2024
+cosas codigo/camera_data
+metadatos_noaa.json
+logs/
+map/db/metadata.db
+map/scripts/noaa/ui/tasks_noaa.json
+map/scripts/noaa/ui/tiles_panama.json
+map/db/metadata.db
+package-lock.json
+package.json
+
+# Archivos de credenciales y configuración sensible
+.env
+.smbcredentials
+/root/.smbcredentials
+**/credentials.json
+**/*credentials*.json
+*.key
+*.pem

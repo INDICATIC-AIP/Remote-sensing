@@ -1,0 +1,1330 @@
+:root {
+    --nasa-blue: #0B3D91;
+    --nasa-red: #FC3D21;
+    --nasa-gray: #333333;
+    --light-gray: #f0f2f5;
+    --panel-width: 360px;
+    --border-color: #e0e0e0;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --border-radius: 8px;
+    --transition: all 0.2s ease;
+  }
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: var(--light-gray);
+    color: #333;
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  .app-container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  /* Panel izquierdo */
+  .control-panel {
+    width: var(--panel-width);
+    height: 100vh;
+    background-color: white;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    overflow-y: auto;
+    z-index: 100;
+    transition: transform 0.3s ease;
+    padding: 1rem;
+  }
+  
+  /* Toggle para dispositivos móviles */
+  .panel-toggle {
+    display: none;
+    position: fixed;
+    left: 10px;
+    top: 10px;
+    z-index: 1000;
+    background: white;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    box-shadow: var(--shadow);
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+  }
+  
+  /* Área del mapa */
+  .map-container {
+    flex: 1;
+    height: 100vh;
+    position: relative;
+  }
+  
+  #map {
+    width: 100%;
+    height: 50%;
+    background-color: #f5f5f5;
+  }
+  
+  /* Encabezado del panel */
+  /* .panel-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+  }
+   */
+  .panel-header h1 {
+    color: var(--nasa-blue);
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  /* Acordeones */
+  .accordions-container {
+    max-height: calc(100vh - 350px);
+    overflow-y: auto;
+    padding-right: 5px;
+    margin-bottom: 1rem;
+  }
+  
+  .accordion {
+    background-color: #f9f9f9;
+    cursor: pointer;
+    padding: 0.8rem;
+    width: 100%;
+    border: none;
+    border-radius: var(--border-radius);
+    text-align: left;
+    outline: none;
+    font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: var(--transition);
+    margin-top: 8px;
+    border: 1px solid var(--border-color);
+  }
+  
+  .accordion:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .accordion.active {
+    background-color: rgba(11, 61, 145, 0.1);
+    border-color: rgba(11, 61, 145, 0.3);
+  }
+  
+  .panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    background-color: white;
+    margin-bottom: 8px;
+  }
+  
+  .panel.open {
+    max-height: 300px;
+    padding: 0.8rem;
+  }
+  
+  /* Campos seleccionados como tags */
+  .selected-fields {
+    margin: 1rem 0;
+  }
+  
+  .selected-fields h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    color: var(--nasa-gray);
+  }
+  
+  .tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 1rem;
+  }
+  
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    background-color: rgba(11, 61, 145, 0.1);
+    color: var(--nasa-blue);
+    padding: 0.3rem 0.6rem;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    gap: 5px;
+    transition: var(--transition);
+  }
+  
+  .tag:hover {
+    background-color: rgba(11, 61, 145, 0.2);
+  }
+  
+  .tag .remove-tag {
+    cursor: pointer;
+    opacity: 0.7;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+  }
+  
+  .tag .remove-tag:hover {
+    opacity: 1;
+  }
+  
+  .tag-group {
+    margin-bottom: 0.5rem;
+  }
+  
+  .tag-group-label {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 4px;
+  }
+  
+  /* Lista de campos */
+  .field-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  
+  .field-item {
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: var(--transition);
+    font-size: 0.9rem;
+  }
+  
+  .field-item:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .field-item.selected {
+    background-color: rgba(11, 61, 145, 0.1);
+    color: var(--nasa-blue);
+    font-weight: 500;
+  }
+  
+  /* Filtros */
+  .filters-section {
+    margin-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+  }
+  
+  .filters-section h3 {
+    margin-bottom: 0.8rem;
+    font-size: 1rem;
+    color: var(--nasa-gray);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding: 8px;
+    background-color: #f9f9f9;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+  }
+  
+  .filter-row select,
+  .filter-row input {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    flex-grow: 1;
+    min-width: 0;
+    font-size: 0.9rem;
+  }
+  
+  .filter-row .filter-field,
+  .filter-row .filter-value {
+    flex-basis: 100%;
+  }
+  
+  .filter-row .filter-operator {
+    flex-basis: 70%;
+  }
+  
+  .filter-row .filter-actions {
+    flex-basis: 25%;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  button {
+    padding: 0.5rem 0.8rem;
+    cursor: pointer;
+    background-color: var(--nasa-blue);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: var(--transition);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+  
+  button:hover {
+    opacity: 0.9;
+  }
+  
+  button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+  
+  button.remove-filter {
+    background-color: #FF4136;
+    padding: 0.4rem;
+  }
+  
+  button.add-filter {
+    background-color: #3D9970;
+    margin-top: 0.5rem;
+  }
+  
+  button.search-button {
+    width: 100%;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    padding: 0.7rem;
+    font-size: 1rem;
+    background-color: var(--nasa-blue);
+  }
+  
+  /* Resultados flotantes */
+  /* .results-panel {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    width: 320px;
+    max-height: calc(100vh - 20px);
+    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    z-index: 10;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  } */
+
+.results-panel {
+  width: 520px;
+  min-width: 300px;
+  background-color: white;
+  border-left: 1px solid #ccc;
+  box-shadow: var(--shadow);
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+}
+
+
+  
+  .results-header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 5;
+  }
+  
+  .results-header h2 {
+    font-size: 1rem;
+    margin: 0;
+  }
+  
+  .results-close {
+    background: none;
+    color: #666;
+    padding: 5px;
+  }
+  
+  .results-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem;
+  }
+  
+  .result-card {
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    margin-bottom: 1rem;
+  }
+  
+  .result-card h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+  
+  .result-card img {
+    width: 100%;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+  }
+  
+  .result-card .result-details {
+    font-size: 0.85rem;
+  }
+  
+  .result-card .result-details p {
+    margin: 0.3rem 0;
+  }
+  
+  .no-results {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: #666;
+  }
+  
+  .loading {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 1rem 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    text-align: center;
+    z-index: 10;
+  }
+  
+  /* Responsive */
+  /* @media (max-width: 992px) {
+    .control-panel {
+      position: fixed;
+      transform: translateX(-100%);
+    }
+    
+    .control-panel.open {
+      transform: translateX(0);
+    }
+    
+    .panel-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  } */
+
+  #map {
+    z-index: 1 !important;
+    position: relative;
+  }
+  
+  .results-panel {
+    z-index: 1000 !important;
+  }
+  
+
+ .task-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9rem;
+  box-shadow: 0 0 0 1px #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.task-table th {
+  background-color: #0B3D91;
+  color: white;
+  text-transform: uppercase;
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ccc;
+}
+
+.task-table td {
+  padding: 10px;
+  background-color: #fff;
+  border-bottom: 1px solid #eee;
+  word-break: break-word;
+}
+
+.task-table tbody tr:nth-child(even) td {
+  background-color: #f9f9f9;
+}
+
+.task-table td button {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.task-table td button:hover {
+  background: #c82333;
+}
+
+
+  .badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: white;
+    font-size: 0.8em;
+  }
+  
+  .badge.frames { background-color: #007bff; }   /* Azul */
+  .badge.nadir { background-color: #28a745; }    /* Verde */
+  .badge.mlcoord { background-color: #ffc107; }  /* Amarillo */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  
+  .modal-content {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .modal-content h3 {
+    margin-bottom: 1rem;
+  }
+  
+  .modal-content label {
+    display: block;
+    margin-top: 1rem;
+    font-weight: 500;
+  }
+  
+  .modal-content input,
+  .modal-content select {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.25rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+  }
+  
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+  }
+  
+  .confirm-btn {
+    background: #28a745;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .confirm-btn:hover {
+    background: #218838;
+  }
+  
+  .cancel-btn {
+    background: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .cancel-btn:hover {
+    background: #c82333;
+  }
+  
+
+
+  .download-status {
+  background-color: #f5f5f5;
+  padding: 0.75em 1em;
+  border-radius: 8px;
+  margin-bottom: 1em;
+  font-size: 0.95rem;
+}
+
+.progress-bar-container {
+  background-color: #ddd;
+  border-radius: 4px;
+  height: 10px;
+  overflow: hidden;
+  margin-top: 0.5em;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #4caf50;
+  transition: width 0.4s ease;
+}
+
+
+
+/* Contenedor principal de la fila */
+.results-header {
+  display: flex;
+  align-items: center;
+  /* justify-content: space-between;
+  gap: 2rem;
+  margin: 0;
+  padding: 1rem; */
+  background: #f8f9fa;
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+/* Título con ícono */
+.results-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.results-header h2 i {
+  color: #007bff;
+  font-size: 1.3rem;
+}
+
+/* Controles de paginación */
+.pagination {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pagination-buttons button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-buttons button:hover:not(:disabled) {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.pagination-buttons button:disabled {
+  background: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+  border-color: #e9ecef;
+}
+
+.page-info {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Botón de acciones */
+.botones-cron {
+  display: flex;
+  align-items: center;
+}
+
+.export-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.export-button:hover {
+  background: #218838;
+}
+
+
+
+
+/* 🔥 ESTILOS PARA PROGRESO MEJORADO */
+.download-status {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin: 1rem 0;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.download-status::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+.download-header h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.3rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.download-subtitle {
+  margin: 0 0 1.5rem 0;
+  opacity: 0.9;
+  font-size: 1rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; }
+}
+
+.download-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  transition: transform 0.2s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+}
+
+.progress-text, .images-text, .time-text {
+  font-weight: bold;
+  font-size: 1.2rem;
+  display: block;
+  margin-top: 0.5rem;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.progress-bar-container {
+  background: rgba(255,255,255,0.2);
+  border-radius: 25px;
+  height: 50px;
+  margin: 1.5rem 0;
+  overflow: hidden;
+  position: relative;
+  border: 2px solid rgba(255,255,255,0.3);
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 23px;
+  transition: all 0.5s ease-out;
+  position: relative;
+  animation: progressFlow 3s ease-in-out infinite;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+@keyframes progressFlow {
+  0%, 100% { box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+  50% { box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+}
+
+.progress-text-inside {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+}
+
+.phase-indicator {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.phase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 120px;
+  opacity: 0.4;
+  transition: all 0.4s ease;
+  padding: 0.5rem;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+}
+
+.phase.active {
+  opacity: 1;
+  transform: scale(1.1);
+  background: rgba(255,255,255,0.2);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.phase-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  transition: transform 0.3s ease;
+}
+
+.phase.active .phase-icon {
+  transform: scale(1.2);
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: scale(1.2) translateY(0); }
+  40% { transform: scale(1.2) translateY(-10px); }
+  60% { transform: scale(1.2) translateY(-5px); }
+}
+
+.phase-text {
+  font-size: 0.9rem;
+  text-align: center;
+  font-weight: 500;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.download-actions .btn-cancel {
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.download-actions .btn-cancel:hover {
+  background: rgba(192, 57, 43, 0.9) !important;
+  transform: scale(1.05);
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  .download-stats {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .stat-item {
+    padding: 0.75rem;
+  }
+  
+  .phase {
+    min-width: 100px;
+  }
+  
+  .phase-text {
+    font-size: 0.8rem;
+  }
+  
+  .progress-bar-container {
+    height: 40px;
+  }
+  
+  .download-header h3 {
+    font-size: 1.1rem;
+  }
+}
+
+@keyframes fadeOutDown {
+    from { transform: translateX(-50%) translateY(0); opacity: 1; }
+    to { transform: translateX(-50%) translateY(20px); opacity: 0; }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/* 🔥 ESTILOS COMPACTOS PARA PROGRESO DE DESCARGA */
+.download-status-compact {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin: 1rem 0;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  position: relative;
+}
+
+.download-header-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.download-header-compact h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--nasa-blue);
+  font-weight: 600;
+}
+
+.download-progress-main {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: var(--nasa-blue);
+  background: rgba(11, 61, 145, 0.1);
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+}
+
+.download-message {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.8rem;
+  text-align: center;
+}
+
+.progress-bar-container-compact {
+  background-color: #f0f0f0;
+  border-radius: 6px;
+  height: 8px;
+  overflow: hidden;
+  margin-bottom: 0.8rem;
+  border: 1px solid #e0e0e0;
+}
+
+.progress-bar-compact {
+  height: 100%;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.download-stats-compact {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+  gap: 1rem;
+}
+
+.stat-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  padding: 0.4rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 500;
+  margin-bottom: 0.2rem;
+}
+
+.stat-value {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: var(--nasa-blue);
+}
+
+.phase-indicator-compact {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+  gap: 0.5rem;
+}
+
+.phase-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  padding: 0.4rem;
+  border-radius: 6px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  opacity: 0.5;
+  transition: all 0.3s ease;
+}
+
+.phase-compact.active {
+  opacity: 1;
+  background: rgba(11, 61, 145, 0.1);
+  border-color: rgba(11, 61, 145, 0.3);
+  transform: scale(1.05);
+}
+
+.phase-icon-compact {
+  font-size: 1rem;
+  margin-bottom: 0.2rem;
+}
+
+.phase-text-compact {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #333;
+  text-align: center;
+}
+
+.phase-compact.active .phase-text-compact {
+  color: var(--nasa-blue);
+  font-weight: 600;
+}
+
+.download-actions-compact {
+  text-align: center;
+}
+
+.btn-cancel-compact {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel-compact:hover {
+  background: #c82333;
+  transform: scale(1.05);
+}
+
+/* 🔥 AJUSTAR PANEL DE RESULTADOS PARA QUE NO SEA TAN ANCHO */
+.results-panel {
+  width: 400px; /* Reducido de 520px */
+  min-width: 350px;
+  background-color: white;
+  border-left: 1px solid #ccc;
+  box-shadow: var(--shadow);
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* 🔥 MEJORAR HEADER DE RESULTADOS PARA QUE SEA MÁS COMPACTO */
+.results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8f9fa;
+  border-radius: 0;
+  padding: 0.8rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.results-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: #333;
+  font-size: 1rem; /* Reducido */
+}
+
+.results-header h2 i {
+  color: #007bff;
+  font-size: 1.1rem; /* Reducido */
+}
+
+/* 🔥 PAGINACIÓN MÁS COMPACTA */
+.pagination {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.pagination-buttons {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.pagination-buttons button {
+  padding: 0.3rem 0.6rem; /* Más pequeño */
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.8rem; /* Más pequeño */
+}
+
+.pagination-buttons button:hover:not(:disabled) {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.pagination-buttons button:disabled {
+  background: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+  border-color: #e9ecef;
+}
+
+.page-info {
+  font-size: 0.75rem; /* Más pequeño */
+  color: #666;
+  margin: 0;
+}
+
+/* 🔥 BOTÓN DE ACCIONES MÁS COMPACTO */
+.export-button {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.8rem; /* Más pequeño */
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease;
+  font-size: 0.8rem; /* Más pequeño */
+}
+
+.export-button:hover {
+  background: #218838;
+}
+
+/* 🔥 RESPONSIVE PARA MÓVILES */
+@media (max-width: 768px) {
+  .results-panel {
+    width: 300px;
+    min-width: 280px;
+  }
+  
+  .download-stats-compact {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .phase-indicator-compact {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  
+  .results-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.8rem;
+  }
+  
+  .pagination {
+    order: -1;
+  }
+}
+
+.loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 20px 40px;
+  border-radius: 10px;
+  text-align: center;
+  z-index: 9999;
+  backdrop-filter: blur(5px);
+}
+
+.loading i {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.loading p {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.bx-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* CSS para filtros de vista */
+.vista-filtros-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.vista-filtros-section h3 {
+  margin-bottom: 0.8rem;
+  font-size: 1rem;
+  color: var(--nasa-gray);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  padding: 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.radio-option:hover {
+  background: #f8f9fa;
+  border-color: var(--nasa-blue);
+}
+
+.radio-option.active {
+  background: rgba(11, 61, 145, 0.1);
+  border-color: var(--nasa-blue);
+  color: var(--nasa-blue);
+}
+
+.radio-option input[type="radio"] {
+  margin-right: 0.5rem;
+  accent-color: var(--nasa-blue);
+}
+
+.radio-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.filtro-activo {
+  background: #e8f4fd;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: var(--nasa-blue);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filtro-badge {
+  background: var(--nasa-blue);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  margin-left: 0.5rem;
+}
+
+.descarga-info {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.descarga-info ul {
+  margin: 0.5rem 0 0 1rem;
+  padding: 0;
+}
+
+.descarga-info li {
+  margin-bottom: 0.3rem;
+}

@@ -1,0 +1,12 @@
+https://eol.jsc.nasa.gov/SearchPhotos/CoordinateRangeSearch.pl?LowerLat=6.6&UpperLat=10.5&LeftLon=-83.2&RightLon=-76.9&UseNotCataloged=on&nighttime=on&dawndusk=on🔵 Iniciando ejecución del script...
+Generated URL: https://eol.jsc.nasa.gov/SearchPhotos/Technical.pl?SearchPublicCB=on&IncludePanCB=on&geon=Panama&SearchGeonCB=on&SearchFeatCB=on&maxsun=0
+🔄 Redirigiendo a: https://eol.jsc.nasa.gov/SearchPhotos/ShowQueryResults-TextTable.pl?results=17487640839042
+📌 Accediendo a TextTable.pl: https://eol.jsc.nasa.gov/SearchPhotos/ShowQueryResults-TextTable.pl?results=17487640839042
+📌 Accediendo a Table.pl: https://eol.jsc.nasa.gov/SearchPhotos/ShowQueryResults-Table.pl?results=17487640839042
+✅ Datos guardados en /home/jose/API-NASA/map/scripts/automatica/map_filters/combined_output.json (45 elementos)
+🔵 Iniciando ejecución del script...
+Generated URL: https://eol.jsc.nasa.gov/SearchPhotos/Technical.pl?SearchPublicCB=on&IncludePanCB=on&geon=Panama&SearchGeonCB=on&SearchFeatCB=on&minsun=-100&maxsun=0
+🔄 Redirigiendo a: https://eol.jsc.nasa.gov/SearchPhotos/ShowQueryResults-TextTable.pl?results=17487641373322
+📌 Accediendo a TextTable.pl: https://eol.jsc.nasa.gov/SearchPhotos/ShowQueryResults-TextTable.pl?results=17487641373322
+📌 Accediendo a Table.pl: https://eol.jsc.nasa.gov/SearchPhotos/ShowQueryResults-Table.pl?results=17487641373322
+✅ Datos guardados en /home/jose/API-NASA/map/scripts/automatica/map_filters/combined_output.json (45 elementos)

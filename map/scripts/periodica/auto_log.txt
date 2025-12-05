@@ -1,0 +1,552 @@
+╭─ SECCIÓN ───────────────────╮
+│ Modo Programado Inteligente │
+╰─────────────────────────────╯
+Ejecutando como tarea programada con procesamiento inteligente
+╭─ SECCIÓN ──────────────╮
+│ Configuración Descarga │
+╰────────────────────────╯
+NAS no disponible - Modo DESARROLLO local: /home/jose/API-NASA/map/scripts/backend/API-NASA (SOLO PARA PRUEBAS)
+╭─ SECCIÓN ────────────────────────╮
+│ Inicio Procesamiento Inteligente │
+╰──────────────────────────────────╯
+Iniciando procesamiento inteligente desde: /home/jose/API-NASA/map/scripts/periodica/tasks.json
+🚀 PROCESADOR INTELIGENTE CON AUTO-RETRY
+📍 Modo: DESARROLLO (Local - solo pruebas)
+📁 Destino: /home/jose/API-NASA/map/scripts/backend/API-NASA
+📋 Procesando 1 tareas programadas con task_api_client
+╭─ SECCIÓN ─────────╮
+│ Tarea Inteligente │
+╰───────────────────╯
+Ejecutando tarea inteligente: task_mbsck6n5_rum
+╭─ SECCIÓN ─────────╮
+│ Tarea Inteligente │
+╰───────────────────╯
+Procesando tarea con task_api_client: task_mbsck6n5_rum
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Procesando tarea programada: task_mbsck6n5_rum
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Procesando 5 consultas para tarea task_mbsck6n5_rum
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Ejecutando consulta 1/5: frames (modo: 003000-045959)
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Consultando API con query: frames|ptime|ge|003000|frames|ptime|le|045959|fram...
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+API devolvió 62 resultados totales
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Filtrados 31 resultados de alta resolución de 62 totales
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Consulta 1 completada: 31 resultados de alta resolución de 62 totales (fuente: frames)
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Ejecutando consulta 2/5: frames (modo: 050000-103000)
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Consultando API con query: frames|ptime|ge|050000|frames|ptime|le|103000|fram...
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+API devolvió 42 resultados totales
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Filtrados 21 resultados de alta resolución de 42 totales
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Consulta 2 completada: 21 resultados de alta resolución de 42 totales (fuente: frames)
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Ejecutando consulta 3/5: nadir (modo: 003000-045959)
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Consultando API con query: nadir|ptime|ge|003000|nadir|ptime|le|045959|nadir|...
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+API devolvió 2298 resultados totales
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Filtrados 1149 resultados de alta resolución de 2298 totales
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Consulta 3 completada: 1149 resultados de alta resolución de 2298 totales (fuente: nadir)
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Ejecutando consulta 4/5: nadir (modo: 050000-103000)
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Consultando API con query: nadir|ptime|ge|050000|nadir|ptime|le|103000|nadir|...
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+API devolvió 3232 resultados totales
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Filtrados 1616 resultados de alta resolución de 3232 totales
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Consulta 4 completada: 1616 resultados de alta resolución de 3232 totales (fuente: nadir)
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Ejecutando consulta 5/5: mlcoord (modo: normal)
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Consultando API con query: mlcoord|lat|ge|6.1|mlcoord|lat|le|10.8|mlcoord|lon...
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+API devolvió 680 resultados totales
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Filtrados 340 resultados de alta resolución de 680 totales
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Consulta 5 completada: 340 resultados de alta resolución de 680 totales (fuente: mlcoord)
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Deduplicando 3157 resultados combinados
+╭─ SECCIÓN ────────────────────╮
+│ Deduplicación Multi-Consulta │
+╰──────────────────────────────╯
+Resultados únicos: 3113, Duplicados eliminados: 44
+╭─ SECCIÓN ───────────────╮
+│ Estadísticas por Fuente │
+╰─────────────────────────╯
+Totales por fuente: {'unknown': 3157}
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Verificación BD (Image): 0 ya existen de 3113 consultados
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Aplicando límite: 15 de 15 imágenes nuevas
+╭─ SECCIÓN ───────╮
+│ Task API Client │
+╰─────────────────╯
+Tarea task_mbsck6n5_rum procesada: 15 imágenes nuevas de 3113 únicas de 3157 totales
+🎯 Task API Client devolvió 15 imágenes nuevas
+╭─ SECCIÓN ────────╮
+│ Ejecución Actual │
+╰──────────────────╯
+Registrados 15 NASA_IDs para esta ejecución
+╭─ SECCIÓN ─────────╮
+│ Tarea Inteligente │
+╰───────────────────╯
+Registrados 15 NASA_IDs para procesamiento
+╭─ SECCIÓN ─╮
+│ Debug     │
+╰───────────╯
+Resultados Task API guardados en: /home/jose/API-NASA/map/scripts/backend/resultados_task_api.json
+🔍 Procesando 15 imágenes nuevas con scraping enriquecido...
+╭─ SECCIÓN ────────────────────────╮
+│ Extracción Metadatos Enriquecida │
+╰──────────────────────────────────╯
+Extrayendo metadatos enriquecidos de 15 resultados con scraping
+╭─ SECCIÓN ────────────╮
+│ Extracción Metadatos │
+╰──────────────────────╯
+Mapeos de cámara y film cargados exitosamente desde data.py
+╭─ SECCIÓN ─────╮
+│ Scraping NASA │
+╰───────────────╯
+Datos obtenidos para ISS006-E-44611: Cámara=Kodak_DCS760c_Electronic_Still_Camera, Fecha=2003-04-11, GeoTIFF=False
+╭─ SECCIÓN ─────╮
+│ Scraping NASA │
+╰───────────────╯
+Datos obtenidos para ISS006-E-44610: Cámara=Kodak_DCS760c_Electronic_Still_Camera, Fecha=2003-04-11, GeoTIFF=False
+╭─ SECCIÓN ─────╮
+│ Scraping NASA │
+╰───────────────╯
+Datos obtenidos para ISS006-E-44609: Cámara=Kodak_DCS760c_Electronic_Still_Camera, Fecha=2003-04-11, GeoTIFF=False
+╭─ SECCIÓN ─────╮
+│ Scraping NASA │
+╰───────────────╯
+Datos obtenidos para ISS026-E-16458: Cámara=Nikon_D3S_Electronic_Still_Camera, Fecha=2011-01-09, GeoTIFF=False
+╭─ SECCIÓN ─────╮
+│ Scraping NASA │
+╰───────────────╯
+Datos obtenidos para ISS006-E-44608: Cámara=Kodak_DCS760c_Electronic_Still_Camera, Fecha=2003-04-11, GeoTIFF=False
+╭─ SECCIÓN ─────╮
+│ Scraping NASA │
+╰───────────────╯
+Datos obtenidos para ISS026-E-16457: Cámara=Nikon_D3S_Electronic_Still_Camera, Fecha=2011-01-09, GeoTIFF=False
+╭─ SECCIÓN ─────╮
+│ Scraping NASA │
+╰───────────────╯
+╭─ SECCIÓN ─────╮
+│ Scraping NASA │
+╰───────────────╯
+Datos obtenidos para ISS006-E-44612: Cámara=Kodak_DCS760c_Electronic_Still_Camera, Fecha=2003-04-11, GeoTIFF=False
+Datos obtenidos para ISS026-E-16456: Cámara=Nikon_D3S_Electronic_Still_Camera, Fecha=2011-01-09, GeoTIFF=False
+╭─ SECCIÓN ─────╮
+│ Scraping NASA │
+╰───────────────╯
+Datos obtenidos para ISS026-E-16459: Cámara=Nikon_D3S_Electronic_Still_Camera, Fecha=2011-01-09, GeoTIFF=False
+╭─ SECCIÓN ─────╮
+│ Scraping NASA │
+╰───────────────╯
+Datos obtenidos para ISS006-E-44613: Cámara=Kodak_DCS760c_Electronic_Still_Camera, Fecha=2003-04-11, GeoTIFF=False
+╭─ SECCIÓN ───────╮
+│ Camera Metadata │
+╰─────────────────╯
+Camera metadata descargado: /home/jose/API-NASA/map/scripts/API-NASA/camera_data/ISS006-E-44611.txt
+╭─ SECCIÓN ───────╮
+│ Camera Metadata │
+╰─────────────────╯
+Camera metadata descargado: /home/jose/API-NASA/map/scripts/API-NASA/camera_data/ISS006-E-44609.txt
+╭─ SECCIÓN ───────╮
+│ Camera Metadata │
+╰─────────────────╯
+Camera metadata descargado: /home/jose/API-NASA/map/scripts/API-NASA/camera_data/ISS006-E-44608.txt
+╭─ SECCIÓN ───────╮
+│ Camera Metadata │
+╰─────────────────╯
+Camera metadata descargado: /home/jose/API-NASA/map/scripts/API-NASA/camera_data/ISS006-E-44610.txt
+╭─ SECCIÓN ───────╮
+│ Camera Metadata │
+╰─────────────────╯
+Camera metadata descargado: /home/jose/API-NASA/map/scripts/API-NASA/camera_data/ISS006-E-44612.txt
+╭─ SECCIÓN ───────╮
+│ Camera Metadata │
+╰─────────────────╯
+Camera metadata descargado: /home/jose/API-NASA/map/scripts/API-NASA/camera_data/ISS026-E-16456.txt
+╭─ SECCIÓN ───────╮
+│ Camera Metadata │
+╰─────────────────╯
+Camera metadata descargado: /home/jose/API-NASA/map/scripts/API-NASA/camera_data/ISS026-E-16458.txt
+╭─ SECCIÓN ───────╮
+│ Camera Metadata │
+╰─────────────────╯
+Camera metadata descargado: /home/jose/API-NASA/map/scripts/API-NASA/camera_data/ISS026-E-16457.txt
+╭─ SECCIÓN ───────╮
+│ Camera Metadata │
+╰─────────────────╯
+Camera metadata descargado: /home/jose/API-NASA/map/scripts/API-NASA/camera_data/ISS006-E-44613.txt
+╭─ SECCIÓN ───────╮
+│ Camera Metadata │
+╰─────────────────╯
+Camera metadata descargado: /home/jose/API-NASA/map/scripts/API-NASA/camera_data/ISS026-E-16459.txt
+╭─ SECCIÓN ────────────────────────╮
+│ Extracción Metadatos Enriquecida │
+╰──────────────────────────────────╯
+Progreso scraping: 10/15 completadas
+╭─ SECCIÓN ─────╮
+│ Scraping NASA │
+╰───────────────╯
+Datos obtenidos para ISS026-E-16460: Cámara=Nikon_D3S_Electronic_Still_Camera, Fecha=2011-01-09, GeoTIFF=False
+╭─ SECCIÓN ─────╮
+│ Scraping NASA │
+╰───────────────╯
+Datos obtenidos para ISS026-E-16461: Cámara=Nikon_D3S_Electronic_Still_Camera, Fecha=2011-01-09, GeoTIFF=False
+╭─ SECCIÓN ─────╮
+│ Scraping NASA │
+╰───────────────╯
+Datos obtenidos para ISS026-E-16462: Cámara=Nikon_D3S_Electronic_Still_Camera, Fecha=2011-01-09, GeoTIFF=False
+╭─ SECCIÓN ─────╮
+│ Scraping NASA │
+╰───────────────╯
+Datos obtenidos para ISS026-E-16463: Cámara=Nikon_D3S_Electronic_Still_Camera, Fecha=2011-01-09, GeoTIFF=False
+╭─ SECCIÓN ─────╮
+│ Scraping NASA │
+╰───────────────╯
+Datos obtenidos para ISS026-E-16464: Cámara=Nikon_D3S_Electronic_Still_Camera, Fecha=2011-01-09, GeoTIFF=False
+╭─ SECCIÓN ───────╮
+│ Camera Metadata │
+╰─────────────────╯
+Camera metadata descargado: /home/jose/API-NASA/map/scripts/API-NASA/camera_data/ISS026-E-16460.txt
+╭─ SECCIÓN ───────╮
+│ Camera Metadata │
+╰─────────────────╯
+Camera metadata descargado: /home/jose/API-NASA/map/scripts/API-NASA/camera_data/ISS026-E-16461.txt
+╭─ SECCIÓN ───────╮
+│ Camera Metadata │
+╰─────────────────╯
+Camera metadata descargado: /home/jose/API-NASA/map/scripts/API-NASA/camera_data/ISS026-E-16462.txt
+╭─ SECCIÓN ───────╮
+│ Camera Metadata │
+╰─────────────────╯
+Camera metadata descargado: /home/jose/API-NASA/map/scripts/API-NASA/camera_data/ISS026-E-16463.txt
+╭─ SECCIÓN ───────╮
+│ Camera Metadata │
+╰─────────────────╯
+Camera metadata descargado: /home/jose/API-NASA/map/scripts/API-NASA/camera_data/ISS026-E-16464.txt
+╭─ SECCIÓN ────────────────────────╮
+│ Extracción Metadatos Enriquecida │
+╰──────────────────────────────────╯
+Progreso scraping: 15/15 completadas
+╭─ SECCIÓN ────────────────────────╮
+│ Extracción Metadatos Enriquecida │
+╰──────────────────────────────────╯
+Metadatos enriquecidos extraídos: 15 registros con scraping completo
+╭─ SECCIÓN ─────────╮
+│ Tarea Inteligente │
+╰───────────────────╯
+Metadatos enriquecidos extraídos: 15 registros
+✅ Scraping completado: 15 metadatos enriquecidos
+📥 Iniciando descarga de imágenes...
+╭─ SECCIÓN ──────────────╮
+│ Configuración Descarga │
+╰────────────────────────╯
+NAS no disponible - Modo DESARROLLO local: /home/jose/API-NASA/map/scripts/backend/API-NASA (SOLO PARA PRUEBAS)
+╭─ SECCIÓN ────────╮
+│ Descarga Directa │
+╰──────────────────╯
+Iniciando descarga DIRECTA - DESARROLLO (Local - solo pruebas) - 15 imágenes
+╭─ SECCIÓN ────────╮
+│ Descarga Directa │
+╰──────────────────╯
+Archivos nuevos: 15 en 2 carpetas - Destino: DESARROLLO (Local - solo pruebas)
+╭─ SECCIÓN ────────╮
+│ Descarga Directa │
+╰──────────────────╯
+Descargando 6 imágenes a: /home/jose/API-NASA/map/scripts/backend/API-NASA/2024/ISS006/Kodak DCS760c Electronic Still 
+Camera
+PROGRESS: 6
+PROGRESS: 13
+PROGRESS: 20
+╭─ SECCIÓN ────────╮
+│ Descarga Directa │
+╰──────────────────╯
+Progreso: 20% (3/15) - Carpeta: 3/6
+PROGRESS: 26
+PROGRESS: 33
+PROGRESS: 40
+╭─ SECCIÓN ────────╮
+│ Descarga Directa │
+╰──────────────────╯
+Progreso: 40% (6/15) - Carpeta: 6/6
+╭─ SECCIÓN ────────╮
+│ Descarga Directa │
+╰──────────────────╯
+Carpeta completada exitosamente: 6 imágenes en /home/jose/API-NASA/map/scripts/backend/API-NASA/2024/ISS006/Kodak 
+DCS760c Electronic Still Camera
+╭─ SECCIÓN ────────╮
+│ Descarga Directa │
+╰──────────────────╯
+Descargando 9 imágenes a: /home/jose/API-NASA/map/scripts/backend/API-NASA/2024/ISS026/Nikon D3S Electronic Still Camera
+PROGRESS: 46
+╭─ SECCIÓN ────────╮
+│ Descarga Directa │
+╰──────────────────╯
+Progreso: 46% (7/15) - Carpeta: 1/9
+PROGRESS: 53
+PROGRESS: 60
+PROGRESS: 66
+╭─ SECCIÓN ────────╮
+│ Descarga Directa │
+╰──────────────────╯
+Progreso: 66% (10/15) - Carpeta: 4/9
+PROGRESS: 73
+PROGRESS: 80
+PROGRESS: 86
+╭─ SECCIÓN ────────╮
+│ Descarga Directa │
+╰──────────────────╯
+Progreso: 86% (13/15) - Carpeta: 7/9
+PROGRESS: 93
+PROGRESS: 100
+╭─ SECCIÓN ────────╮
+│ Descarga Directa │
+╰──────────────────╯
+Progreso: 100% (15/15) - Carpeta: 9/9
+╭─ SECCIÓN ────────╮
+│ Descarga Directa │
+╰──────────────────╯
+Carpeta completada exitosamente: 9 imágenes en /home/jose/API-NASA/map/scripts/backend/API-NASA/2024/ISS026/Nikon D3S 
+Electronic Still Camera
+╭─ SECCIÓN ────────╮
+│ Descarga Directa │
+╰──────────────────╯
+DESCARGA COMPLETADA - DESARROLLO (Local - solo pruebas): 15/15 imágenes en 7.9s (1.9 img/s)
+PROGRESS: 100
+🔄 Procesando imágenes en base de datos...
+╭─ SECCIÓN ─────╮
+│ Base de Datos │
+╰───────────────╯
+SQLite configurado para máximo rendimiento
+╭─ SECCIÓN ──────────────╮
+│ Configuración Descarga │
+╰────────────────────────╯
+NAS no disponible - Modo DESARROLLO local: /home/jose/API-NASA/map/scripts/backend/API-NASA (SOLO PARA PRUEBAS)
+╭─ SECCIÓN ────╮
+│ Workflow ISS │
+╰──────────────╯
+Iniciando workflow híbrido - DESARROLLO (Local - solo pruebas) - 15 elementos
+╭─ SECCIÓN ────╮
+│ Workflow ISS │
+╰──────────────╯
+FASE 1: Descarga directa con aria2c optimizado
+╭─ SECCIÓN ──────────────╮
+│ Configuración Descarga │
+╰────────────────────────╯
+NAS no disponible - Modo DESARROLLO local: /home/jose/API-NASA/map/scripts/backend/API-NASA (SOLO PARA PRUEBAS)
+╭─ SECCIÓN ────────╮
+│ Descarga Directa │
+╰──────────────────╯
+Iniciando descarga DIRECTA - DESARROLLO (Local - solo pruebas) - 15 imágenes
+╭─ SECCIÓN ────────╮
+│ Descarga Directa │
+╰──────────────────╯
+Archivos nuevos: 0 en 2 carpetas - Destino: DESARROLLO (Local - solo pruebas)
+╭─ SECCIÓN ────────╮
+│ Descarga Directa │
+╰──────────────────╯
+Todos los archivos ya existen en el destino
+╭─ SECCIÓN ────╮
+│ Workflow ISS │
+╰──────────────╯
+FASE 1 completada en 0.00s - Descarga directa a DESARROLLO (Local - solo pruebas)
+╭─ SECCIÓN ────╮
+│ Workflow ISS │
+╰──────────────╯
+FASE 2: Preparando datos para base de datos
+╭─ SECCIÓN ─────────╮
+│ Preparación Datos │
+╰───────────────────╯
+Preparados 15/15 elementos
+╭─ SECCIÓN ────╮
+│ Workflow ISS │
+╰──────────────╯
+FASE 2 completada en 0.00s - 15 registros preparados
+╭─ SECCIÓN ────╮
+│ Workflow ISS │
+╰──────────────╯
+FASE 3: Escribiendo en base de datos SQLite
+╭─ SECCIÓN ─────╮
+│ Base de Datos │
+╰───────────────╯
+Escribiendo 15 registros en lotes de 75
+Imagen creada con ID: 1
+Detalles creados para image_id: 1
+Ubicación creada para image_id: 1
+Información de cámara creada para image_id: 1
+Imagen creada con ID: 2
+Detalles creados para image_id: 2
+Ubicación creada para image_id: 2
+Información de cámara creada para image_id: 2
+Imagen creada con ID: 3
+Detalles creados para image_id: 3
+Ubicación creada para image_id: 3
+Información de cámara creada para image_id: 3
+Imagen creada con ID: 4
+Detalles creados para image_id: 4
+Ubicación creada para image_id: 4
+Información de cámara creada para image_id: 4
+Imagen creada con ID: 5
+Detalles creados para image_id: 5
+Ubicación creada para image_id: 5
+Información de cámara creada para image_id: 5
+Imagen creada con ID: 6
+Detalles creados para image_id: 6
+Ubicación creada para image_id: 6
+Información de cámara creada para image_id: 6
+Imagen creada con ID: 7
+Detalles creados para image_id: 7
+Ubicación creada para image_id: 7
+Información de cámara creada para image_id: 7
+Imagen creada con ID: 8
+Detalles creados para image_id: 8
+Ubicación creada para image_id: 8
+Información de cámara creada para image_id: 8
+Imagen creada con ID: 9
+Detalles creados para image_id: 9
+Ubicación creada para image_id: 9
+Información de cámara creada para image_id: 9
+Imagen creada con ID: 10
+Detalles creados para image_id: 10
+Ubicación creada para image_id: 10
+Información de cámara creada para image_id: 10
+Imagen creada con ID: 11
+Detalles creados para image_id: 11
+Ubicación creada para image_id: 11
+Información de cámara creada para image_id: 11
+Imagen creada con ID: 12
+Detalles creados para image_id: 12
+Ubicación creada para image_id: 12
+Información de cámara creada para image_id: 12
+Imagen creada con ID: 13
+Detalles creados para image_id: 13
+Ubicación creada para image_id: 13
+Información de cámara creada para image_id: 13
+Imagen creada con ID: 14
+Detalles creados para image_id: 14
+Ubicación creada para image_id: 14
+Información de cámara creada para image_id: 14
+Imagen creada con ID: 15
+Detalles creados para image_id: 15
+Ubicación creada para image_id: 15
+Información de cámara creada para image_id: 15
+PROGRESS: 100
+╭─ SECCIÓN ─────╮
+│ Base de Datos │
+╰───────────────╯
+Lote 1/1: 15 escritos, 0 duplicados
+╭─ SECCIÓN ─────╮
+│ Base de Datos │
+╰───────────────╯
+Escritura completada: 15 nuevos, 0 duplicados
+╭─ SECCIÓN ────╮
+│ Workflow ISS │
+╰──────────────╯
+FASE 3 completada en 0.22s
+╭─ SECCIÓN ────╮
+│ Workflow ISS │
+╰──────────────╯
+WORKFLOW COMPLETADO - DESARROLLO (Local - solo pruebas) - Total: 0.2s | Descarga: 0.0s | Preparación: 0.0s | DB: 0.2s
+╭─ SECCIÓN ──╮
+│ Retry Info │
+╰────────────╯
+Información de reintentos limpiada
+╭─ SECCIÓN ────────────────────╮
+│ Tarea Inteligente Completada │
+╰──────────────────────────────╯
+Tarea completada exitosamente: 15 imágenes procesadas
+🎉 Proceso completado: 15 imágenes procesadas exitosamente
+╭─ SECCIÓN ────────────────────────────╮
+│ Procesamiento Inteligente Completado │
+╰──────────────────────────────────────╯
+Procesamiento inteligente completado exitosamente
+╭─ SECCIÓN ──────╮
+│ Gestión Tareas │
+╰────────────────╯
+No había tarea programada para eliminar (normal)
+╭─ SECCIÓN ──╮
+│ Retry Info │
+╰────────────╯
+Información de reintentos limpiada
+╭─ SECCIÓN ──────╮
+│ Gestión Tareas │
+╰────────────────╯
+No se pudo crear tarea ISS_RecoveryCheck: /bin/sh: 1: schtasks: not found
+
+🎉 Proceso completado exitosamente

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <title>Luces Nocturnas NOAA Panamá</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="noaa.css" />
+  <link rel="stylesheet" href="https://unpkg.com/nprogress@0.2.0/nprogress.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://unpkg.com/nprogress@0.2.0/nprogress.js"></script>
+  <script src="../noaa_renderer.js"></script>
+</head>
+
+<body>
+  <div id="map-container">
+    <div class="header">
+      <h2>Luces Nocturnas en Panamá (NOAA DMSP-OLS y VIIRS)</h2>
+    </div>
+
+    <div class="controls">
+      <div class="control-group">
+        <!-- <label for="year">Año:</label>
+        <select id="year"></select> -->
+        <label for="fecha">Fecha:</label>
+        <select id="fecha"></select>
+
+      </div>
+
+      <div class="control-group">
+        <label for="opacidad">Opacidad:</label>
+        <input type="range" id="opacidad" name="opacidad" min="0" max="1" step="0.1" value="0.85"
+          style="width: 120px;" />
+      </div>
+
+      <div class="button-group">
+        <!-- exportarImagenes() -->
+        <button onclick="abrirModalExportar()" class="primary-button">
+          <span>⬇️</span> Exportar Todo
+        </button>
+        <!-- <button onclick="verificarNuevas()" class="secondary-button">
+          <span>🔍</span> Verificar Nuevas
+        </button> -->
+        <button id="btn-regenerar-tiles" style="display:none;" onclick="generarTiles()" class="warning-button">
+          Regenerar Tiles
+        </button>
+        <button onclick="abrirModalTareas()" class="secondary-button">
+          Tareas NOAA
+        </button>
+      </div>
+    </div>
+
+    <div id="estado" class="status-message info" style="display: none;"></div>
+
+    <div id="progreso-lanzado" class="status-message info" style="display: none;"></div>
+    <div id="progreso-real" class="status-message info" style="display: none;"></div>
+
+    <div id="map"></div>
+    <div id="info"></div>
+  </div>
+
+  <button class="toggle-sidebar" id="toggle-sidebar">❯</button>
+
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <h3>Imágenes exportadas</h3>
+    </div>
+
+    <div id="sidebar-content">
+      <div class="filter-bar" style="flex-direction: column; gap: 15px;">
+        <!-- Botón principal para cargar desde Drive -->
+        <button onclick="cargarImagenesLocales()" class="primary-button">
+          Cargar imágenes locales
+        </button>
+
+        <!-- Filtros que aplican solo luego de cargar -->
+        <div class="control-group">
+          <label for="filtro-año">Filtrar por año:</label>
+          <input type="number" id="filtro-año" placeholder="Ej: 2022" style="width: 100px;" />
+        </div>
+
+        <div class="control-group">
+          <label for="filtro-tipo">Filtrar por tipo:</label>
+          <select id="filtro-tipo">
+            <option value="">Todos</option>
+            <option value="DMSP">DMSP</option>
+            <option value="VIIRS">VIIRS</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <!--<label>Verificación automática:</label>
+           <div class="checkbox-group">
+            <input type="checkbox" id="auto-check" />
+            <label for="auto-check">Activar verificación automática</label>
+          </div> -->
+          <div class="schedule-controls" style="display: none;">
+            <select id="check-frequency">
+              <option value="HOURLY">Cada hora</option>
+              <option value="DAILY">Diariamente</option>
+              <option value="WEEKLY">Semanalmente</option>
+            </select>
+            <input type="time" id="check-time" />
+            <button onclick="configurarVerificacionAutomatica()" class="secondary-button">
+              Configurar
+            </button>
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- Aquí aparecen las imágenes -->
+      <div id="imagenes-drive">
+        <div class="status-message">Cargando imágenes...</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="progreso-alerta" style="
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  z-index: 9999;
+  display: none;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+"></div>
+
+  <div id="modal-exportar" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <h3>Imágenes pendientes de exportar</h3>
+
+      <div style="margin-bottom: 10px;">
+        <label for="filtro-dataset">Filtrar por dataset:</label>
+        <select id="filtro-dataset" onchange="filtrarPorDataset()">
+          <option value="">Todos</option>
+          <option value="DMSP">DMSP</option>
+          <option value="VIIRS">VIIRS</option>
+        </select>
+      </div>
+
+      <div id="resumen-total" style="margin-bottom: 10px;"></div>
+
+      <div id="lista-pendientes">
+        <p>Cargando imágenes...</p>
+      </div>
+
+      <div class="pagination-controls" style="margin-top: 10px; display: flex; justify-content: space-between;">
+        <button id="prev-pag" class="secondary-button">⬅ Anterior</button>
+        <span id="pagina-actual"></span>
+        <button id="next-pag" class="secondary-button">Siguiente ➡</button>
+      </div>
+
+      <div style="margin-top: 15px; display: flex; justify-content: space-between;">
+        <button onclick="cerrarModalExportar()" class="secondary-button">Cancelar</button>
+        <button onclick="confirmarExportar()" class="primary-button">Exportar Todas</button>
+      </div>
+    </div>
+  </div>
+
+
+
+</body>
+<div id="modal-tareas" class="modal-overlay" style="display: none;">
+  <div class="modal-content">
+    <h3>Tareas NOAA programadas</h3>
+
+    <form id="form-noaa-tarea" class="modal-body" onsubmit="guardarTareaNoaa(); return false;">
+      <h4>Nueva / Editar tarea</h4>
+      <button type="button" onclick="cerrarModalTareas()" class="secondary-button">✖ Cerrar</button>
+
+      <label>Hora:</label>
+      <input type="time" id="modal-hora" required />
+
+      <label>Frecuencia:</label>
+      <select id="modal-frecuencia" required>
+        <option value="ONCE">Una vez</option>
+        <option value="DAILY">Diariamente</option>
+        <option value="HOURLY">Cada hora</option>
+        <option value="WEEKLY">Semanalmente</option>
+      </select>
+
+      <label>Intervalo:</label>
+      <input type="number" id="modal-intervalo" min="1" value="1" required />
+
+      <div style="margin-top: 15px;">
+        <button type="submit" class="primary-button">Guardar</button>
+      </div>
+    </form>
+
+
+    <table id="tabla-tareas" class="task-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Frecuencia</th>
+          <th>Hora</th>
+          <th>Intervalo</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+  </div>
+
+
+</html>

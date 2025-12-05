@@ -1,0 +1,389 @@
+<div id="app" class="app-container">
+  <!-- Botón toggle para móviles -->
+  <button class="panel-toggle" @click="togglePanel" aria-label="Toggle panel">
+    <i :class="isPanelOpen ? 'bx bx-x' : 'bx bx-menu'"></i>
+  </button>
+
+  <!-- Panel de control lateral -->
+  <div class="control-panel" :class="{ 'open': isPanelOpen }">
+    <div class="panel-header">
+      <h1><i class='bx bx-planet'></i> NASA ISS Photo Search</h1>
+      <h5>
+        Documentación Parámetros:
+        <a href="#" @click.prevent="abrirVentanaElectron">Ver</a>
+      </h5>
+    </div>
+
+    <!-- Sección de filtros -->
+    <div class="filters-section">
+      <div id="bounding-box-map" style="height: 300px;"></div>
+      <button @click="guardarBoundingBox">Guardar Bounding Box</button>
+      <p>Lat Min: {{ boundingBox.latMin }}, Lat Max: {{ boundingBox.latMax }}</p>
+      <p>Lon Min: {{ boundingBox.lonMin }}, Lon Max: {{ boundingBox.lonMax }}</p>
+
+      <div class="nocturno-toggle">
+        <label>
+          <input type="checkbox" v-model="modoNocturno">
+          Mostrar solo imágenes nocturnas
+        </label>
+      </div>
+
+      <h3><i class='bx bx-filter-alt'></i> Filtros</h3>
+
+      <div v-for="(filter, index) in filters" :key="index" class="filter-row">
+        <select v-model="filter.table" class="filter-table">
+          <option v-for="table in Object.keys(tables)" :key="table" :value="table">
+            {{ table }}
+          </option>
+        </select>
+
+        <select v-model="filter.field" class="filter-field">
+          <option v-for="param in tableParams(filter.table)" :key="param" :value="param">{{ param }}</option>
+        </select>
+
+        <select v-model="filter.operator" class="filter-operator">
+          <option value="eq">= (igual)</option>
+          <option value="gt">> (mayor que)</option>
+          <option value="lt">
+            < (menor que)</option>
+          <option value="ge">≥ (mayor o igual)</option>
+          <option value="le">≤ (menor o igual)</option>
+          <option value="ne">!= (distinto)</option>
+          <option value="like">like (comodín *)</option>
+          <option value="not like">not like (no contiene *)</option>
+        </select>
+
+        <template v-if="filter.table === 'frames' && (filter.field === 'camera' || filter.field === 'film')">
+          <select v-model="filter.value" class="filter-value">
+            <option disabled value="">Selecciona un valor</option>
+            <option v-for="code in filter.field === 'camera' ? frames_values.camera_codes : frames_values.film_codes"
+              :key="code" :value="code">
+              {{ code }}
+            </option>
+          </select>
+        </template>
+        <template v-else>
+          <input type="text" v-model="filter.value" placeholder="Valor" class="filter-value"
+            :class="{ 'invalid': !isValidInput(filter.value) && filter.value !== '' }" />
+        </template>
+
+        <div class="filter-actions">
+          <button class="remove-filter" @click="removeFilter(index)" aria-label="Remove filter">
+            <i class='bx bx-trash'></i>
+          </button>
+        </div>
+      </div>
+
+      <button class="add-filter" @click="addFilter">
+        <i class='bx bx-plus'></i> Agregar Filtro
+      </button>
+
+      <!-- Buscar -->
+      <button class="search-button" @click="fetchData" :disabled="!allFiltersValid || isLoading">
+        <i class='bx bx-search'></i> Buscar Imágenes
+      </button>
+
+      <div class="vista-filtros-section" v-if="searchPerformed">
+        <h3><i class='bx bx-filter'></i> Vista de Resultados</h3>
+
+        <div class="filter-toggles">
+          <label class="radio-option" :class="{ active: vistaFiltro === 'todas' }">
+            <input type="radio" v-model="vistaFiltro" value="todas" @change="cambiarVistaFiltro">
+            <span class="radio-text">
+              <i class='bx bx-show'></i>
+              Todas ({{ results.length }})
+            </span>
+          </label>
+
+          <label class="radio-option" :class="{ active: vistaFiltro === 'nuevas' }">
+            <input type="radio" v-model="vistaFiltro" value="nuevas" @change="cambiarVistaFiltro">
+            <span class="radio-text">
+              <i class='bx bx-plus-circle'></i>
+              Solo nuevas ({{ resultadosNuevos.length }})
+            </span>
+          </label>
+
+          <label class="radio-option" :class="{ active: vistaFiltro === 'descargadas' }">
+            <input type="radio" v-model="vistaFiltro" value="descargadas" @change="cambiarVistaFiltro">
+            <span class="radio-text">
+              <i class='bx bx-check-circle'></i>
+              Ya descargadas ({{ results.length - resultadosNuevos.length }})
+            </span>
+          </label>
+        </div>
+
+        <!-- Indicador del filtro activo -->
+        <div class="filtro-activo" v-if="vistaFiltro !== 'todas'">
+          <i class='bx bx-info-circle'></i>
+          Mostrando:
+          <strong v-if="vistaFiltro === 'nuevas'">{{ resultadosNuevos.length }} imágenes nuevas</strong>
+          <strong v-else-if="vistaFiltro === 'descargadas'">{{ results.length - resultadosNuevos.length }} imágenes ya
+            descargadas</strong>
+        </div>
+      </div>
+
+      <!-- Mostrar campos seleccionados por defecto debajo de filtros -->
+      <div class="default-return-fields">
+        <h3><i class='bx bx-info-circle'></i> Campos devueltos</h3>
+        <template v-for="(fields, table) in returnFieldsSelected" :key="table">
+          <div v-if="fields && fields.length > 0" class="tag-group">
+            <div class="tag-group-label">{{ table }}</div>
+            <div class="tags-container">
+              <div v-for="field in fields" :key="`${table}-${field}`" class="tag">
+                <i class='bx bx-check'></i> {{ field }}
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor principal del mapa y resultados -->
+  <div class="map-container" style="display: flex;">
+    <!-- Indicador de carga -->
+    <div v-if="isLoading" class="loading">
+      <i class='bx bx-loader-alt bx-spin' style="font-size: 2rem;"></i>
+      <p>Buscando imágenes...</p>
+    </div>
+    <div style="flex: 1; display: flex; flex-direction: column;">
+      <!-- Mapa -->
+      <div id="map"></div>
+
+      <!-- Tabla de tareas programadas -->
+      <div class="task-table-section">
+        <h3><i class='bx bx-list-check'></i> Tareas Programadas</h3>
+        <table class="task-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Hora</th>
+              <th>Frecuencia</th>
+              <th>Intervalo</th>
+              <th>Query</th>
+              <th>Return</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(tarea, index) in tareasPeriodicas" :key="index">
+              <td>{{ index + 1 }}</td>
+              <td>{{ tarea.hora }}</td>
+              <td>{{ tarea.frecuencia }}</td>
+              <td>{{ tarea.intervalo || "-" }}</td>
+              <td style="max-width: 200px; word-break: break-all;">{{ tarea.query }}</td>
+              <td style="max-width: 200px; word-break: break-all;">{{ tarea.return }}</td>
+              <td>
+                <button @click="eliminarTarea(index)" type="button"
+                  style="background: none; border: none; cursor: pointer;">
+                  <img src="trash.svg" alt="Eliminar" width="30" height="30" />
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Panel de resultados -->
+    <div class="results-panel" v-if="searchPerformed && !isLoading && showResultsPanel">
+
+      <!-- 🔥 SECCIÓN DE PROGRESO MEJORADA Y COMPACTA -->
+      <div v-if="descargandoDirecto" class="download-status-compact">
+        <div class="download-header-compact">
+          <h4>🚀 Descargando</h4>
+          <span class="download-progress-main">{{ progresoDescarga }}%</span>
+        </div>
+
+        <div class="download-message">{{ mensajeEstado }}</div>
+
+        <!-- Barra de progreso principal -->
+        <div class="progress-bar-container-compact">
+          <div class="progress-bar-compact" :style="{ 
+            width: progresoDescarga + '%',
+            background: progresoDescarga < 30 ? '#3498db' : 
+                       progresoDescarga < 70 ? '#f39c12' : '#27ae60'
+          }"></div>
+        </div>
+
+        <!-- Stats compactas -->
+        <div class="download-stats-compact">
+          <div class="stat-compact">
+            <span class="stat-label">Imágenes:</span>
+            <span class="stat-value">{{ imagenesDescargadas }}/{{ totalImagenes }}</span>
+          </div>
+          <div class="stat-compact">
+            <span class="stat-label">Tiempo:</span>
+            <span class="stat-value">{{ tiempoDescargaFormato }}</span>
+          </div>
+        </div>
+
+        <!-- Indicador de fase minimalista -->
+        <div class="phase-indicator-compact">
+          <div class="phase-compact" :class="{ active: estadoDescarga === 'processing' }">
+            <span class="phase-icon-compact">📝</span>
+            <span class="phase-text-compact">Metadatos</span>
+          </div>
+
+          <div class="phase-compact" :class="{ active: estadoDescarga === 'downloading' }">
+            <span class="phase-icon-compact">⬇️</span>
+            <span class="phase-text-compact">Descarga</span>
+          </div>
+
+          <div class="phase-compact" :class="{ active: estadoDescarga === 'completed' }">
+            <span class="phase-icon-compact">✅</span>
+            <span class="phase-text-compact">Listo</span>
+          </div>
+        </div>
+
+        <!-- Botón cancelar más pequeño -->
+        <div class="download-actions-compact">
+          <button @click="cancelarDescarga" class="btn-cancel-compact">
+            ❌ Cancelar
+          </button>
+        </div>
+      </div>
+
+      <!-- Header de resultados -->
+      <div class="results-header">
+        <h2>
+          <i class='bx bx-image'></i>
+          <span v-if="vistaFiltro === 'todas'">{{ results.length }} resultado(s)</span>
+          <span v-else-if="vistaFiltro === 'nuevas'">{{ resultadosNuevos.length }} nueva(s)</span>
+          <span v-else-if="vistaFiltro === 'descargadas'">{{ results.length - resultadosNuevos.length }}
+            descargada(s)</span>
+
+          <!-- Badge del filtro activo -->
+          <span v-if="vistaFiltro !== 'todas'" class="filtro-badge">
+            {{ vistaFiltro === 'nuevas' ? 'NUEVAS' : 'DESCARGADAS' }}
+          </span>
+        </h2>
+        <div class="pagination">
+          <div class="pagination-buttons">
+            <button @click="prevPage" :disabled="currentPage === 1">Anterior</button>
+            <button @click="nextPage" :disabled="currentPage === totalPages">Siguiente</button>
+          </div>
+          <div class="page-info">
+            Página {{ currentPage }} de {{ totalPages }}
+          </div>
+        </div>
+
+        <div class="botones-cron">
+          <button @click="abrirModalAcciones" class="export-button" :disabled="descargandoDirecto">
+            <i class='bx bx-cog'></i> Acciones
+          </button>
+        </div>
+
+        <button class="results-close" @click="showResultsPanel = false">
+          <!-- <i class='bx bx-x'></i> -->
+        </button>
+      </div>
+
+      <!-- Cuerpo de resultados -->
+      <div class="results-body">
+        <div v-if="results.length > 0">
+          <div v-for="(photo, index) in getResultadosFiltrados().slice((currentPage-1)*pageSize, currentPage*pageSize)"
+            :key="index" class="result-card">
+            <img :src="photo.previewUrl" :alt="photo['images.filename'] || 'Imagen NASA'" loading="lazy"
+              @click="selectImage(photo)" style="cursor: pointer;" />
+
+            <p><strong>Fuente:</strong>
+              <span :class="'badge ' + photo.coordSource">
+                {{ photo.coordSource }}
+              </span>
+            </p>
+
+            <div class="result-details">
+              <p v-if="photo[`${selectedCoordSource}.lat`] && photo[`${selectedCoordSource}.lon`]">
+                <strong>Coordenadas:</strong> {{ photo[`${selectedCoordSource}.lat`] }}, {{
+                photo[`${selectedCoordSource}.lon`] }}
+              </p>
+
+              <p v-if="photo['images.filename']">
+                <strong>Archivo:</strong> {{ photo['images.filename'] }}
+              </p>
+              <p v-if="photo[`${photo.coordSource}.ptime`]">
+                <strong>Hora Local:</strong> {{ convertirUTCaLocal(photo[`${photo.coordSource}.ptime`]) }}
+              </p>
+              <p v-if="photo[`${photo.coordSource}.pdate`]">
+                <strong>Fecha Local:</strong> {{ photo[`${photo.coordSource}.pdate`] }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="no-results">
+          <i class='bx bx-search-alt' style="font-size: 2rem;"></i>
+          <h3>No se encontraron resultados</h3>
+          <p>Intenta modificar tus filtros de búsqueda.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de creación de tareas -->
+  <div v-if="mostrarModalCron" class="modal">
+    <div class="modal-content">
+      <h3>Crear Tarea Programada</h3>
+
+      <label>Hora de inicio:</label>
+      <input type="time" v-model="cronHora" />
+
+      <label>Frecuencia:</label>
+      <select v-model="cronFrecuencia">
+        <option value="ONCE">Una vez</option>
+        <option value="DAILY">Diaria</option>
+        <option value="WEEKLY">Semanal</option>
+      </select>
+
+      <div v-if="cronFrecuencia === 'MINUTE' || cronFrecuencia === 'HOURLY'">
+        <label>Intervalo (número):</label>
+        <input type="number" v-model="cronIntervalo" min="1" placeholder="Ej: 5 para cada 5 min">
+      </div>
+
+      <div class="modal-actions">
+        <button class="confirm-btn" @click="validarYCrearTarea">Crear</button>
+        <button class="cancel-btn" @click="cerrarModalCron">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de acciones -->
+  <div v-if="mostrarModalAcciones" class="modal">
+    <div class="modal-content">
+      <h3>🛠 Acciones disponibles</h3>
+
+      <button @click="descargarAhora(); cerrarModalAcciones()" :disabled="!puedeDescargar" class="export-button"
+        style="width: 100%; margin-bottom: 1rem;">
+        <i class='bx bx-download'></i>
+        <span v-if="resultadosNuevos.length > 0">
+          Descargar {{ Math.min(resultadosNuevos.length, limiteDescarga) }} nuevas
+          <small v-if="resultadosNuevos.length > limiteDescarga">
+            (de {{ resultadosNuevos.length }} disponibles)
+          </small>
+        </span>
+        <span v-else>No hay imágenes nuevas</span>
+      </button>
+      <div class="descarga-info" v-if="searchPerformed">
+        <p><strong>📊 Resumen:</strong></p>
+        <ul>
+          <li>Total encontradas: {{ results.length }}</li>
+          <li>Nuevas para descargar: {{ resultadosNuevos.length }}</li>
+          <li>Ya en base de datos: {{ results.length - resultadosNuevos.length }}</li>
+          <li v-if="resultadosNuevos.length > limiteDescarga">
+            Se descargarán máximo {{ limiteDescarga }} por límite configurado
+          </li>
+        </ul>
+
+        <button @click="abrirModalCron" class="export-button" style="width: 100%;">
+          <i class='bx bx-time'></i> Programar tarea (cron)
+        </button>
+
+        <div class="modal-actions">
+          <button class="cancel-btn" @click="cerrarModalAcciones">Cerrar</button>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
