@@ -17,6 +17,7 @@ map/scripts/noaa/ui/tiles_panama.json
 map/db/metadata.db
 package-lock.json
 package.json
+map/scripts/metadatos_periodicos.json
 
 # Archivos de credenciales y configuración sensible
 .env

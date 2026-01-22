@@ -38,7 +38,7 @@ from task_api_client import procesar_tarea_programada
 from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".env"))
 
-LIMITE_IMAGENES = 15
+LIMITE_IMAGENES = 320
 
 # ============================================================================
 #  CONFIGURACIÓN

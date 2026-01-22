@@ -1,9 +1,10 @@
 window.queryBuilder = {
 
   buildQuery(filters, selectedCoordSource, boundingBox) {
-    const userFilters = filters
-      .filter(f => f.table === selectedCoordSource)
-      .map(filter => `${filter.table}|${filter.field}|${filter.operator}|${filter.value}`);
+    // Incluir filtros de la tabla seleccionada y siempre incluir cualquier filtro 'pdate'
+    const candidate = filters.filter(f => f.table === selectedCoordSource || f.field === 'pdate');
+    // Normalizar y eliminar duplicados
+    const userFilters = Array.from(new Set(candidate.map(filter => `${filter.table}|${filter.field}|${filter.operator}|${filter.value}`)));
 
     const boundingFilters = [
       `${selectedCoordSource}|lat|ge|${boundingBox.latMin}`,

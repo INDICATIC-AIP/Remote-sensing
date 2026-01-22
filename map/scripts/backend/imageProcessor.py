@@ -111,7 +111,24 @@ def descargar_imagenes_aria2c_optimizado(metadatos, conexiones=32):
         if carpeta_destino not in grupos_por_carpeta:
             grupos_por_carpeta[carpeta_destino] = []
 
-        filename = os.path.basename(url)
+        # Normalizar filename: eliminar query string y manejar GeoTIFFs
+        url_path = url.split('?', 1)[0]
+        raw_basename = os.path.basename(url_path)
+        name, ext = os.path.splitext(raw_basename)
+
+        # Si la URL apunta a GetGeotiff.pl o no tiene extensión clara, usar NASA_ID.tif cuando sea posible
+        nasa_id = metadata.get('NASA_ID') or metadata.get('NASA_ID'.upper()) or None
+        is_geotiff_url = 'geotiff' in url.lower() or 'getgeotiff.pl' in url.lower()
+
+        if is_geotiff_url and nasa_id:
+            filename = f"{nasa_id}.tif"
+        else:
+            # Si no hay extensión, intentar añadir .jpg por defecto
+            if ext == '':
+                filename = raw_basename + '.jpg'
+            else:
+                filename = raw_basename
+
         filepath = os.path.join(carpeta_destino, filename)
 
         # Solo descargar si no existe

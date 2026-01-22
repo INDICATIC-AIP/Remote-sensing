@@ -15,7 +15,7 @@ fetch("template.html")
       template: template,
       data() {
         return {
-          limiteDescarga: 15,
+          limiteDescarga: 320,
           filters: [],
           returnFieldsSelected: {},
           accordionOpen: null,
@@ -479,7 +479,7 @@ fetch("template.html")
             } else {
               // Duplicado encontrado
               duplicados++;
-              console.warn(`🔄 Duplicado detectado y eliminado: ${nasaId}`);
+              // console.warn(`🔄 Duplicado detectado y eliminado: ${nasaId}`);
             }
           }
 
@@ -493,7 +493,7 @@ fetch("template.html")
             file: LOG_PATH
           });
 
-          console.log(` Deduplicación de ${contexto} completada: ${unicos.length} únicos, ${duplicados} duplicados eliminados`);
+          // console.log(` Deduplicación de ${contexto} completada: ${unicos.length} únicos, ${duplicados} duplicados eliminados`);
 
           return unicos;
         },
@@ -1220,6 +1220,19 @@ fetch("template.html")
                 const queryString = window.queryBuilder.buildQuery(filtrosActuales, source, this.boundingBox);
                 const returnParams = window.queryBuilder.buildReturn(this.returnFieldsSelected, source);
                 const apiUrl = `https://eol.jsc.nasa.gov/SearchPhotos/PhotosDatabaseAPI/PhotosDatabaseAPI.pl?query=${queryString}&return=${returnParams}&key=${config.NASA_API_KEY}`;
+
+                // Imprimir/registrar la URL generada para depuración
+                try {
+                  console.log(`API URL (${source}): ${apiUrl}`);
+                  ipcRenderer.send("log_custom", {
+                    section: "API URL",
+                    message: `API URL (${source}): ${apiUrl}`,
+                    level: "INFO",
+                    file: LOG_PATH
+                  });
+                } catch (e) {
+                  console.warn('No se pudo registrar API URL:', e.message);
+                }
 
                 await this.procesarConsulta(apiUrl, source, allResults);
               }

@@ -6,7 +6,7 @@ const fs = require('fs');
 
 // Función para cargar variables de entorno desde .env
 function loadEnv() {
-  const envPath = path.join(__dirname, '..', '..', '..', '.env');
+  const envPath = path.join(__dirname, '..', '.env');
   
   if (!fs.existsSync(envPath)) {
     console.error('⚠️ Archivo .env no encontrado. Copia .env.example a .env y configura tus credenciales.');

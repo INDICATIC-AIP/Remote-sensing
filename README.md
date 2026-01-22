@@ -1,3 +1,10 @@
+# Project Description
+
+
+![Detalles completos del proyecto](./TLP_PTY.png)
+
+TropicalALAN_Lab_PTY is a research and engineering group dedicated to advancing the understanding of artificial light at night (ALAN) in tropical environments. The team operates the first multi-station monitoring network across the Panama Canal Basin, integrating photometric, spectrometric, and remote-sensing datasets. The group develops open, interoperable software and automated hardware systems to quantify the environmental, atmospheric, biological, and economic implications of light pollution, including links with regional GDP/PIB.
+
 # Automated Light Pollution Monitoring System
 
 Automated acquisition, processing, and management of nighttime satellite images for studying light pollution in the Panama Canal basin.

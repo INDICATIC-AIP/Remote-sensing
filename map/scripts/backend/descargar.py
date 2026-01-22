@@ -199,6 +199,31 @@ async def process_photo_optimized(
             )
             print(f" Usando JPG para {nasa_id}")
 
+        # Normalizar URL para descarga: quitar query string y decidir nombre de archivo
+        save_filename = None
+        if final_image_url:
+            url_path = final_image_url.split('?', 1)[0]
+            raw_basename = os.path.basename(url_path)
+            name, ext = os.path.splitext(raw_basename)
+
+            is_geotiff_url = 'geotiff' in final_image_url.lower() or 'getgeotiff.pl' in final_image_url.lower()
+
+            if is_geotiff_url and nasa_id:
+                save_filename = f"{nasa_id}.tif"
+            else:
+                if ext == '':
+                    save_filename = raw_basename + '.jpg'
+                else:
+                    save_filename = raw_basename
+
+            # Log de elección de nombre
+            log_custom(
+                section="Descarga - Nombre",
+                message=f"Elección de nombre para {nasa_id}: {save_filename} (geoTIFF={is_geotiff_url})",
+                level="INFO",
+                file=LOG_FILE,
+            )
+
         #  PASO 10: FECHA FINAL (igual que JS)
         fecha_final = extra_data.get("FECHA_CAPTURA") or formatted_date
 
