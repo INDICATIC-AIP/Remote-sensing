@@ -61,6 +61,6 @@ fi
 
 echo "✅ Setup completo. Si ves mensajes de error de autenticación, sigue las instrucciones anteriores para Google Drive y Earth Engine."
 echo "Setup complete. Check the previous messages for manual steps if necessary."
-echo "✅ Setup complete. If you see authentication error messages, follow the instructions above for Google Drive and Earth Engine."
+echo "Setup complete. If you see authentication error messages, follow the instructions above for Google Drive and Earth Engine."
 source venv/bin/activate
 cd map/

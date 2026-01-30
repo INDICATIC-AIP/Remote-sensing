@@ -1,6 +1,6 @@
 """
  CLIENTE API PARA TAREAS PROGRAMADAS
-Maneja tareas con formato query/return directo desde UI
+Maneja tasks con formato query/return directo desde UI
 """
 
 import os
@@ -31,7 +31,7 @@ LIMITE_IMAGENES = 15
 
 
 class TaskAPIClient:
-    """Cliente para procesar tareas programadas con formato query/return"""
+    """Cliente para process tasks scheduleds con formato query/return"""
 
     def __init__(self):
         self.api_key = API_KEY
@@ -40,7 +40,7 @@ class TaskAPIClient:
     def filtrar_solo_nuevos(
         self, results: List[Dict], nasa_ids_existentes: set
     ) -> List[Dict]:
-        """Filtrar solo resultados que NO están en BD"""
+        """Filtrar solo results que NO están en BD"""
         nuevos = []
 
         for result in results:
@@ -80,7 +80,7 @@ class TaskAPIClient:
 
             log_custom(
                 section="Task API Client",
-                message=f"API devolvió {len(raw_data)} resultados totales",
+                message=f"API devolvió {len(raw_data)} results totales",
                 level="INFO",
                 file=LOG_FILE,
             )
@@ -97,7 +97,7 @@ class TaskAPIClient:
             return []
 
     def normalize_results(self, raw_data: List[Dict]) -> List[Dict]:
-        """Normalizar resultados: reemplazar | por . en las keys"""
+        """Normalizar results: reemplazar | por . en las keys"""
         normalized = []
 
         for photo in raw_data:
@@ -123,15 +123,15 @@ class TaskAPIClient:
 
         log_custom(
             section="Task API Client",
-            message=f"Filtrados {len(normalized)} resultados de alta resolución de {len(raw_data)} totales",
+            message=f"Filtrados {len(normalized)} results de alta resolución de {len(raw_data)} totales",
             level="INFO",
             file=LOG_FILE,
         )
 
         return normalized
 
-    def extraer_nasa_ids_de_resultados(self, results: List[Dict]) -> List[str]:
-        """Extraer NASA_IDs de los resultados"""
+    def extraer_nasa_ids_de_results(self, results: List[Dict]) -> List[str]:
+        """Extraer NASA_IDs de los results"""
         nasa_ids = []
 
         for result in results:
@@ -144,7 +144,7 @@ class TaskAPIClient:
         return nasa_ids
 
     def verificar_nasa_ids_en_bd(self, nasa_ids: List[str]) -> set:
-        """Verificar qué NASA_IDs ya existen en la base de datos"""
+        """Verify qué NASA_IDs ya existen en la base de datos"""
         if not nasa_ids:
             return set()
 
@@ -176,19 +176,19 @@ class TaskAPIClient:
             )
             return set()
 
-    def deduplicar_resultados_multi_consulta(
-        self, resultados: List[Dict]
+    def deduplicar_results_multi_consulta(
+        self, results: List[Dict]
     ) -> List[Dict]:
-        """Deduplicar resultados de múltiples consultas por NASA_ID"""
+        """Deduplicar results de múltiples consultas por NASA_ID"""
         vistos = set()
         unicos = []
         duplicados = 0
         por_fuente = {}
 
-        for resultado in resultados:
-            filename = resultado.get("images.filename")
+        for result in results:
+            filename = result.get("images.filename")
             nasa_id = filename.split(".")[0] if filename else None
-            source = resultado.get("coordSource", "unknown")
+            source = result.get("coordSource", "unknown")
 
             # Contar por fuente para estadísticas
             if source not in por_fuente:
@@ -196,12 +196,12 @@ class TaskAPIClient:
             por_fuente[source] += 1
 
             if not nasa_id or nasa_id == "Sin_ID":
-                unicos.append(resultado)
+                unicos.append(result)
                 continue
 
             if nasa_id not in vistos:
                 vistos.add(nasa_id)
-                unicos.append(resultado)
+                unicos.append(result)
             else:
                 duplicados += 1
 
@@ -222,9 +222,9 @@ class TaskAPIClient:
 
         return unicos
 
-    async def procesar_tarea_programada(self, task: Dict) -> List[Dict]:
+    async def process_task_scheduled(self, task: Dict) -> List[Dict]:
         """
-        Procesar tarea programada con formato:
+        Procesar task scheduled con formato:
         {
           "id": "task_mbsb3or1_u3p",
           "consultas": [
@@ -232,16 +232,16 @@ class TaskAPIClient:
               "source": "frames",
               "query": "frames|ptime|ge|003000|frames|ptime|le|045959|frames|lat|ge|6.1...",
               "return": "frames|mission|frames|roll|frames|frame|frames|pdate|frames|ptime...",
-              "modoNocturno": "003000-045959"
+              "modeNocturno": "003000-045959"
             },
             {
               "source": "frames",
               "query": "frames|ptime|ge|050000|frames|ptime|le|103000|frames|lat|ge|6.1...",
               "return": "frames|mission|frames|roll|frames|frame|frames|pdate|frames|ptime...",
-              "modoNocturno": "050000-103000"
+              "modeNocturno": "050000-103000"
             }
           ],
-          "hora": "14:04",
+          "time": "14:04",
           "frecuencia": "ONCE"
         }
         """
@@ -249,13 +249,13 @@ class TaskAPIClient:
 
         log_custom(
             section="Task API Client",
-            message=f"Procesando tarea programada: {task_id}",
+            message=f"Procesando task scheduled: {task_id}",
             level="INFO",
             file=LOG_FILE,
         )
 
         try:
-            # 1. Validar que la tarea tenga consultas
+            # 1. Validar que la task tenga consultas
             consultas = task.get("consultas", [])
 
             if not consultas:
@@ -263,7 +263,7 @@ class TaskAPIClient:
                 if task.get("query") and task.get("return"):
                     log_custom(
                         section="Task API Client",
-                        message=f"Usando formato legacy (query/return directo) para tarea {task_id}",
+                        message=f"Usando formato legacy (query/return directo) para task {task_id}",
                         level="WARNING",
                         file=LOG_FILE,
                     )
@@ -273,7 +273,7 @@ class TaskAPIClient:
                         return []
 
                     results = self.normalize_results(raw_data)
-                    todos_nasa_ids = self.extraer_nasa_ids_de_resultados(results)
+                    todos_nasa_ids = self.extraer_nasa_ids_de_results(results)
                     nasa_ids_existentes = self.verificar_nasa_ids_en_bd(todos_nasa_ids)
                     results_nuevos = self.filtrar_solo_nuevos(
                         results, nasa_ids_existentes
@@ -289,11 +289,11 @@ class TaskAPIClient:
                     )
 
             # 2. Procesar todas las consultas
-            todos_los_resultados = []
+            todos_los_results = []
 
             log_custom(
                 section="Task API Client",
-                message=f"Procesando {len(consultas)} consultas para tarea {task_id}",
+                message=f"Procesando {len(consultas)} consultas para task {task_id}",
                 level="INFO",
                 file=LOG_FILE,
             )
@@ -302,7 +302,7 @@ class TaskAPIClient:
                 source = consulta.get("source", "unknown")
                 query = consulta.get("query")
                 return_fields = consulta.get("return")
-                modo_nocturno = consulta.get("modoNocturno", "normal")
+                mode_nocturno = consulta.get("modeNocturno", "normal")
 
                 if not query or not return_fields:
                     log_custom(
@@ -315,7 +315,7 @@ class TaskAPIClient:
 
                 log_custom(
                     section="Task API Client",
-                    message=f"Ejecutando consulta {i + 1}/{len(consultas)}: {source} (modo: {modo_nocturno})",
+                    message=f"Ejecutando consulta {i + 1}/{len(consultas)}: {source} (mode: {mode_nocturno})",
                     level="INFO",
                     file=LOG_FILE,
                 )
@@ -324,58 +324,58 @@ class TaskAPIClient:
                 raw_data = self.fetch_from_api(query, return_fields)
 
                 if raw_data:
-                    # 4. Normalizar y procesar resultados
+                    # 4. Normalizar y process results
                     results = self.normalize_results(raw_data)
 
-                    # 5. Agregar información de la fuente
+                    # 5. Agregar information de la fuente
                     # for result in results:
                     #     result["coordSource"] = source
-                    #     result["modoConsulta"] = modo_nocturno
+                    #     result["modeConsulta"] = mode_nocturno
 
-                    todos_los_resultados.extend(results)
+                    todos_los_results.extend(results)
 
                     log_custom(
                         section="Task API Client",
-                        message=f"Consulta {i + 1} completada: {len(results)} resultados de alta resolución de {len(raw_data)} totales (fuente: {source})",
+                        message=f"Consulta {i + 1} completed: {len(results)} results de alta resolución de {len(raw_data)} totales (fuente: {source})",
                         level="INFO",
                         file=LOG_FILE,
                     )
                 else:
                     log_custom(
                         section="Task API Client",
-                        message=f"Consulta {i + 1} sin resultados para fuente {source}",
+                        message=f"Consulta {i + 1} sin results para fuente {source}",
                         level="WARNING",
                         file=LOG_FILE,
                     )
 
-            if not todos_los_resultados:
+            if not todos_los_results:
                 log_custom(
                     section="Task API Client",
-                    message="No se obtuvieron resultados de ninguna consulta",
+                    message="No se obtuvieron results de ninguna consulta",
                     level="WARNING",
                     file=LOG_FILE,
                 )
                 return []
 
-            # 6. Deduplicar resultados combinados
+            # 6. Deduplicar results combinados
             log_custom(
                 section="Task API Client",
-                message=f"Deduplicando {len(todos_los_resultados)} resultados combinados",
+                message=f"Deduplicando {len(todos_los_results)} results combinados",
                 level="INFO",
                 file=LOG_FILE,
             )
 
-            resultados_unicos = self.deduplicar_resultados_multi_consulta(
-                todos_los_resultados
+            results_unicos = self.deduplicar_results_multi_consulta(
+                todos_los_results
             )
 
             # 7. Verificar cuáles ya existen en BD
-            todos_nasa_ids = self.extraer_nasa_ids_de_resultados(resultados_unicos)
+            todos_nasa_ids = self.extraer_nasa_ids_de_results(results_unicos)
             nasa_ids_existentes = self.verificar_nasa_ids_en_bd(todos_nasa_ids)
 
             # 8. Filtrar solo los NUEVOS
             results_nuevos = self.filtrar_solo_nuevos(
-                resultados_unicos, nasa_ids_existentes
+                results_unicos, nasa_ids_existentes
             )
 
             if not results_nuevos:
@@ -392,14 +392,14 @@ class TaskAPIClient:
                 results_nuevos = results_nuevos[:LIMITE_IMAGENES]
                 log_custom(
                     section="Task API Client",
-                    message=f"Aplicando límite: {LIMITE_IMAGENES} de {len(results_nuevos)} imágenes nuevas",
+                    message=f"Aplicando limit: {LIMITE_IMAGENES} de {len(results_nuevos)} imágenes nuevas",
                     level="INFO",
                     file=LOG_FILE,
                 )
 
             log_custom(
                 section="Task API Client",
-                message=f"Tarea {task_id} procesada: {len(results_nuevos)} imágenes nuevas de {len(resultados_unicos)} únicas de {len(todos_los_resultados)} totales",
+                message=f"Tarea {task_id} procesada: {len(results_nuevos)} imágenes nuevas de {len(results_unicos)} únicas de {len(todos_los_results)} totales",
                 level="INFO",
                 file=LOG_FILE,
             )
@@ -409,7 +409,7 @@ class TaskAPIClient:
         except Exception as e:
             log_custom(
                 section="Task API Client",
-                message=f"Error procesando tarea {task_id}: {str(e)}",
+                message=f"Error processing task {task_id}: {str(e)}",
                 level="ERROR",
                 file=LOG_FILE,
             )
@@ -421,18 +421,18 @@ class TaskAPIClient:
 # ============================================================================
 
 
-async def procesar_tarea_programada(task: Dict) -> List[Dict]:
+async def process_task_scheduled(task: Dict) -> List[Dict]:
     """
-    Función de conveniencia para procesar una tarea programada
+    Función de conveniencia para process una task scheduled
 
     Args:
-        task: Diccionario con id, query, return, hora, frecuencia
+        task: Diccionario con id, query, return, time, frecuencia
 
     Returns:
-        Lista de resultados nuevos en formato API normalizado
+        Lista de results nuevos en formato API normalizado
     """
     client = TaskAPIClient()
-    return await client.procesar_tarea_programada(task)
+    return await client.process_task_scheduled(task)
 
 
 # ============================================================================
@@ -441,7 +441,7 @@ async def procesar_tarea_programada(task: Dict) -> List[Dict]:
 
 
 async def test_task_api_client():
-    """Función de prueba para verificar funcionamiento"""
+    """Función de test para verificar funcionamiento"""
     print(" Probando Task API Client...")
 
     # Tarea de ejemplo con tu formato
@@ -449,29 +449,29 @@ async def test_task_api_client():
         "id": "test_task",
         "query": "frames|lat|ge|6.1|frames|lat|le|10.8|frames|lon|ge|-82.9|frames|lon|le|-77.3",
         "return": "images|directory|images|filename|images|width|images|height|frames|mission|frames|pdate",
-        "hora": "13:53",
+        "time": "13:53",
         "frecuencia": "ONCE",
     }
 
     try:
-        results = await procesar_tarea_programada(task_ejemplo)
+        results = await process_task_scheduled(task_ejemplo)
 
-        print(f" Prueba exitosa: {len(results)} resultados nuevos obtenidos")
+        print(f" Prueba exitosa: {len(results)} results nuevos obtenidos")
 
         if results:
-            print(f" Primer resultado:")
-            primer_resultado = results[0]
-            print(f"   - Filename: {primer_resultado.get('images.filename', 'N/A')}")
-            print(f"   - Directory: {primer_resultado.get('images.directory', 'N/A')}")
-            print(f"   - Mission: {primer_resultado.get('frames.mission', 'N/A')}")
+            print(f" Primer result:")
+            primer_result = results[0]
+            print(f"   - Filename: {primer_result.get('images.filename', 'N/A')}")
+            print(f"   - Directory: {primer_result.get('images.directory', 'N/A')}")
+            print(f"   - Mission: {primer_result.get('frames.mission', 'N/A')}")
 
-            # Guardar resultados para debug
+            # Guardar results para debug
             with open("test_task_results.json", "w", encoding="utf-8") as f:
                 json.dump(results, f, indent=2, ensure_ascii=False, default=str)
             print(f" Resultados guardados en: test_task_results.json")
 
     except Exception as e:
-        print(f" Error en prueba: {str(e)}")
+        print(f" Error in test: {str(e)}")
 
 
 if __name__ == "__main__":

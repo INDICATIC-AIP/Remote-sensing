@@ -1,6 +1,6 @@
 """
-NOAA Metrics - Sistema simple de métricas de rendimiento
-Solo las métricas principales, fácil integración
+NOAA Metrics - Simple performance metrics system
+Only main metrics, easy integration
 """
 
 import json
@@ -13,21 +13,21 @@ from typing import Dict, List, Optional
 class NOAAMetrics:
     """Sistema simple de métricas para NOAA"""
 
-    def __init__(self, storage_path: str, metadatos_path: str):
+    def __init__(self, storage_path: str, metadata_path: str):
         self.storage_path = storage_path
         self.metricas_path = os.path.join(
-            os.path.dirname(metadatos_path), "metricas_rendimiento.json"
+            os.path.dirname(metadata_path), "metricas_rendimiento.json"
         )
 
         # Variables de tracking
         self.inicio_descarga = None
         self.fin_descarga = None
 
-    def iniciar_descarga(self):
+    def start_descarga(self):
         """Marca inicio de descarga"""
         self.inicio_descarga = time.time()
 
-    def finalizar_descarga(self):
+    def finish_descarga(self):
         """Marca fin de descarga"""
         self.fin_descarga = time.time()
 
@@ -36,11 +36,11 @@ class NOAAMetrics:
         Calcula métricas principales del sistema
 
         Args:
-            completed_tasks: Lista de tareas completadas del task_manager
-            failed_tasks: Lista de tareas fallidas
+            completed_tasks: Lista de tasks completeds del task_manager
+            failed_tasks: Lista de tasks fallidas
         """
         try:
-            print(" Calculando métricas de rendimiento...")
+            print(" Calculating metrics de rendimiento...")
 
             metricas = {
                 "timestamp": datetime.now().isoformat(),
@@ -60,7 +60,7 @@ class NOAAMetrics:
                         tiempos_gee.append(tiempo_min)
 
                 if tiempos_gee:
-                    metricas["tiempo_exportacion_gee_min"] = round(
+                    metricas["gee_export_time_min"] = round(
                         sum(tiempos_gee) / len(tiempos_gee), 1
                     )
 
@@ -69,29 +69,29 @@ class NOAAMetrics:
             # ============================================================================
             if self.inicio_descarga and self.fin_descarga:
                 tiempo_descarga = self.fin_descarga - self.inicio_descarga
-                metricas["tiempo_descarga_total_seg"] = round(tiempo_descarga, 1)
+                metricas["download_time_total_sec"] = round(tiempo_descarga, 1)
 
             # ============================================================================
             #  ANÁLISIS DE ARCHIVOS
             # ============================================================================
-            archivos_info = self._analizar_archivos()
+            files_info = self._analizar_files()
 
             # Tamaños promedio
-            if archivos_info["viirs_count"] > 0:
-                metricas["tamano_promedio_viirs_mb"] = round(
-                    archivos_info["viirs_size"] / archivos_info["viirs_count"], 1
+            if files_info["viirs_count"] > 0:
+                metricas["avg_size_viirs_mb"] = round(
+                    files_info["viirs_size"] / files_info["viirs_count"], 1
                 )
 
-            if archivos_info["dmsp_count"] > 0:
-                metricas["tamano_promedio_dmsp_mb"] = round(
-                    archivos_info["dmsp_size"] / archivos_info["dmsp_count"], 1
+            if files_info["dmsp_count"] > 0:
+                metricas["avg_size_dmsp_mb"] = round(
+                    files_info["dmsp_size"] / files_info["dmsp_count"], 1
                 )
 
             # Volumen total
-            total_gb = (archivos_info["viirs_size"] + archivos_info["dmsp_size"]) / 1024
-            metricas["volumen_total_gb"] = round(total_gb, 2)
-            metricas["total_imagenes"] = (
-                archivos_info["viirs_count"] + archivos_info["dmsp_count"]
+            total_gb = (files_info["viirs_size"] + files_info["dmsp_size"]) / 1024
+            metricas["total_volume_gb"] = round(total_gb, 2)
+            metricas["total_images"] = (
+                files_info["viirs_count"] + files_info["dmsp_count"]
             )
 
             # ============================================================================
@@ -100,12 +100,12 @@ class NOAAMetrics:
             if (
                 self.inicio_descarga
                 and self.fin_descarga
-                and metricas.get("volumen_total_gb", 0) > 0
+                and metricas.get("total_volume_gb", 0) > 0
             ):
                 tiempo_desc = self.fin_descarga - self.inicio_descarga
-                tamano_mb = metricas["volumen_total_gb"] * 1024
-                velocidad = tamano_mb / tiempo_desc
-                metricas["velocidad_transferencia_mb_s"] = round(velocidad, 1)
+                size_mb = metricas["total_volume_gb"] * 1024
+                velocidad = size_mb / tiempo_desc
+                metricas["transfer_speed_mb_s"] = round(velocidad, 1)
 
             # ============================================================================
             #  TASA DE ÉXITO
@@ -131,7 +131,7 @@ class NOAAMetrics:
             # ============================================================================
             #  MOSTRAR TABLA
             # ============================================================================
-            self._mostrar_tabla_metricas(metricas)
+            self._mostrar_table_metricas(metricas)
 
             return metricas
 
@@ -139,8 +139,8 @@ class NOAAMetrics:
             print(f" Error calculando métricas: {e}")
             return None
 
-    def _analizar_archivos(self):
-        """Analiza archivos físicos"""
+    def _analizar_files(self):
+        """Analiza files físicos"""
         info = {
             "viirs_count": 0,
             "viirs_size": 0,  # MB
@@ -178,12 +178,12 @@ class NOAAMetrics:
                                 except:
                                     pass
         except Exception as e:
-            print(f" Error analizando archivos: {e}")
+            print(f" Error analizando files: {e}")
 
         return info
 
     def _guardar_metricas(self, metricas):
-        """Guarda métricas en archivo JSON"""
+        """Guarda métricas en file JSON"""
         try:
             # Cargar historial existente
             if os.path.exists(self.metricas_path):
@@ -207,46 +207,46 @@ class NOAAMetrics:
             print(f" Métricas guardadas en: {self.metricas_path}")
 
         except Exception as e:
-            print(f" Error guardando métricas: {e}")
+            print(f" Error saving métricas: {e}")
 
-    def _mostrar_tabla_metricas(self, metricas):
-        """Muestra tabla de métricas principales"""
+    def _mostrar_table_metricas(self, metricas):
+        """Muestra table de métricas principales"""
         print("\n MÉTRICAS DE RENDIMIENTO NOAA")
         print("=" * 60)
 
-        tabla = [
+        table = [
             (
                 "Tiempo promedio exportación GEE",
-                f"{metricas.get('tiempo_exportacion_gee_min', 'N/A')} min/imagen",
+                f"{metricas.get('gee_export_time_min', 'N/A')} min/image",
             ),
             (
                 "Tiempo total descarga Google Drive",
-                f"{metricas.get('tiempo_descarga_total_seg', 'N/A')} segundos",
+                f"{metricas.get('download_time_total_sec', 'N/A')} segundos",
             ),
             (
                 "Velocidad de transferencia",
-                f"{metricas.get('velocidad_transferencia_mb_s', 'N/A')} MB/s",
+                f"{metricas.get('transfer_speed_mb_s', 'N/A')} MB/s",
             ),
             (
                 "Tamaño promedio VIIRS",
-                f"{metricas.get('tamano_promedio_viirs_mb', 'N/A')} MB",
+                f"{metricas.get('avg_size_viirs_mb', 'N/A')} MB",
             ),
             (
                 "Tamaño promedio DMSP-OLS",
-                f"{metricas.get('tamano_promedio_dmsp_mb', 'N/A')} MB",
+                f"{metricas.get('avg_size_dmsp_mb', 'N/A')} MB",
             ),
             (
                 "Volumen total procesado",
-                f"{metricas.get('volumen_total_gb', 'N/A')} GB ({metricas.get('total_imagenes', 'N/A')} imágenes)",
+                f"{metricas.get('total_volume_gb', 'N/A')} GB ({metricas.get('total_images', 'N/A')} imágenes)",
             ),
             (
                 "Tiempo total del proceso",
                 f"{metricas.get('tiempo_total_proceso_min', 'N/A')} minutos",
             ),
-            ("Tasa de éxito exportación", f"{metricas.get('tasa_exito_pct', 'N/A')}%"),
+            ("Tasa de success exportación", f"{metricas.get('tasa_exito_pct', 'N/A')}%"),
         ]
 
-        for metrica, valor in tabla:
+        for metrica, valor in table:
             print(f" {metrica:<35} {valor}")
 
         print("=" * 60)
@@ -267,13 +267,13 @@ class NOAAMetrics:
             print("=" * 50)
 
             for i, sesion in enumerate(sesiones, 1):
-                fecha = sesion.get("timestamp", "")[:19].replace("T", " ")
-                print(f" {i}. {fecha}")
-                print(f"   GEE: {sesion.get('tiempo_exportacion_gee_min', 'N/A')} min")
+                date = sesion.get("timestamp", "")[:19].replace("T", " ")
+                print(f" {i}. {date}")
+                print(f"   GEE: {sesion.get('gee_export_time_min', 'N/A')} min")
                 print(
-                    f"   Velocidad: {sesion.get('velocidad_transferencia_mb_s', 'N/A')} MB/s"
+                    f"   Velocidad: {sesion.get('transfer_speed_mb_s', 'N/A')} MB/s"
                 )
-                print(f"   Total: {sesion.get('total_imagenes', 'N/A')} imágenes")
+                print(f"   Total: {sesion.get('total_images', 'N/A')} imágenes")
                 print(f"   Éxito: {sesion.get('tasa_exito_pct', 'N/A')}%")
                 print("-" * 30)
 
@@ -292,15 +292,15 @@ def integrar_metricas_en_processor():
 
     # 1. En __init__ del NOAAProcessor:
     from noaa_metrics import NOAAMetrics
-    self.metrics = NOAAMetrics(self.storage_path, self.metadatos_path)
+    self.metrics = NOAAMetrics(self.storage_path, self.metadata_path)
 
-    # 2. En export_imagenes_nuevas(), antes de descargar_desde_drive():
-    self.metrics.iniciar_descarga()
+    # 2. En export_imagees_nuevas(), antes de download_from_drive():
+    self.metrics.start_descarga()
 
-    # 3. En export_imagenes_nuevas(), después de descargar_desde_drive():
-    self.metrics.finalizar_descarga()
+    # 3. En export_imagees_nuevas(), después de download_from_drive():
+    self.metrics.finish_descarga()
 
-    # 4. En export_imagenes_nuevas(), al final antes de limpiar_ejecucion_actual():
+    # 4. En export_imagees_nuevas(), al final antes de clear_current_execution():
     self.metrics.calcular_metricas(completed_tasks, failed_tasks)
 
     # 5. Para ver historial cuando quieras:
@@ -311,6 +311,6 @@ def integrar_metricas_en_processor():
 
 if __name__ == "__main__":
     # Ejemplo de uso independiente
-    metrics = NOAAMetrics("/ruta/storage", "/ruta/metadatos.json")
+    metrics = NOAAMetrics("/path/storage", "/path/metadata.json")
     metrics.calcular_metricas()
     metrics.mostrar_historico()

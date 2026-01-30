@@ -4,25 +4,26 @@ from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
+
 class Image(Base):
     """
-    Representa una imagen registrada por NASA con metadatos básicos.
+    Represents a NASA-registered image with basic metadata.
 
-    Atributos:
-        image_id (int): Identificador único de la imagen.
-        nasa_id (str): Identificador único de la imagen proporcionado por la NASA.
-        date (date): Fecha de captura de la imagen.
-        time (time): Hora de captura de la imagen.
-        resolution (str): Resolución de la imagen.
-        path (str): Ruta del archivo de la imagen en el sistema.
+    Attributes:
+        image_id (int): Unique image identifier.
+        nasa_id (str): Unique image identifier provided by NASA.
+        date (date): Capture date.
+        time (time): Capture time.
+        resolution (str): Image resolution.
+        path (str): File path of the image on disk.
 
-    Relaciones:
-        details (ImageDetails): Información detallada asociada a la imagen.
-        location_data (MapLocation): Información geográfica relacionada con la imagen.
-        camera_info (CameraInformation): Información de la cámara que capturó la imagen.
+    Relationships:
+        details (ImageDetails): Detailed information associated with the image.
+        location_data (MapLocation): Geographic information related to the image.
+        camera_info (CameraInformation): Camera information for the image.
     """
 
-    __tablename__ = 'Image'
+    __tablename__ = "Image"
 
     image_id = Column(Integer, primary_key=True, autoincrement=True)
     nasa_id = Column(String(100), nullable=False, unique=True)
@@ -31,84 +32,92 @@ class Image(Base):
     resolution = Column(String(50), nullable=True)
     path = Column(String(255), nullable=True)
 
-    details = relationship("ImageDetails", back_populates="image", cascade="all, delete-orphan")
-    location_data = relationship("MapLocation", back_populates="image", cascade="all, delete-orphan")
-    camera_info = relationship("CameraInformation", back_populates="image", cascade="all, delete-orphan")
+    details = relationship(
+        "ImageDetails", back_populates="image", cascade="all, delete-orphan"
+    )
+    location_data = relationship(
+        "MapLocation", back_populates="image", cascade="all, delete-orphan"
+    )
+    camera_info = relationship(
+        "CameraInformation", back_populates="image", cascade="all, delete-orphan"
+    )
 
 
 class ImageDetails(Base):
     """
-    Contiene información adicional sobre una imagen, como condiciones de captura.
+    Additional information about an image, such as capture conditions.
 
-    Atributos:
-        image_id (int): Clave foránea que hace referencia a la imagen asociada.
-        features (str): Características relevantes detectadas en la imagen.
-        sun_elevation (float): Elevación del sol al momento de la captura.
-        sun_azimuth (float): Azimut del sol al momento de la captura.
-        cloud_cover (float): Porcentaje de cobertura nubosa en la imagen.
+    Attributes:
+        image_id (int): Foreign key referencing the associated image.
+        features (str): Relevant features detected in the image.
+        sun_elevation (float): Sun elevation at capture time.
+        sun_azimuth (float): Sun azimuth at capture time.
+        cloud_cover (float): Cloud cover percentage.
 
-    Relaciones:
-        image (Image): Imagen asociada a estos detalles.
+    Relationships:
+        image (Image): Image associated with these details.
     """
-    __tablename__ = 'ImageDetails'
 
-    image_id = Column(Integer, ForeignKey('Image.image_id'), primary_key=True)
+    __tablename__ = "ImageDetails"
+
+    image_id = Column(Integer, ForeignKey("Image.image_id"), primary_key=True)
     features = Column(String, nullable=True)
     sun_elevation = Column(Float, nullable=True)
     sun_azimuth = Column(Float, nullable=True)
     cloud_cover = Column(Float, nullable=True)
-    
+
     image = relationship("Image", back_populates="details")
 
 
 class MapLocation(Base):
     """
-    Contiene datos de localización geográfica asociados a una imagen.
+    Geographic location data associated with an image.
 
-    Atributos:
-        image_id (int): Clave foránea que hace referencia a la imagen asociada.
-        nadir_lat (float): Latitud en el punto nadir.
-        nadir_lon (float): Longitud en el punto nadir.
-        center_lat (float): Latitud del centro de la imagen.
-        center_lon (float): Longitud del centro de la imagen.
-        nadir_center (str): Descripción de la posición nadir/centro.
-        altitude (float): Altitud a la que fue tomada la imagen.
+    Attributes:
+        image_id (int): Foreign key referencing the associated image.
+        nadir_lat (float): Latitude at the nadir point.
+        nadir_lon (float): Longitude at the nadir point.
+        center_lat (float): Center latitude.
+        center_lon (float): Center longitude.
+        nadir_center (str): Description of nadir/center position.
+        altitudee (float): Capture altitude.
 
-    Relaciones:
-        image (Image): Imagen asociada a esta localización.
+    Relationships:
+        image (Image): Image associated with this location.
     """
 
-    __tablename__ = 'MapLocation'
+    __tablename__ = "MapLocation"
 
-    image_id = Column(Integer, ForeignKey('Image.image_id'), primary_key=True)
+    image_id = Column(Integer, ForeignKey("Image.image_id"), primary_key=True)
     nadir_lat = Column(Float, nullable=True)
     nadir_lon = Column(Float, nullable=True)
     center_lat = Column(Float, nullable=True)
     center_lon = Column(Float, nullable=True)
     nadir_center = Column(String(50), nullable=True)
-    altitude = Column(Float, nullable=True)
+    altitudee = Column(Float, nullable=True)
 
     image = relationship("Image", back_populates="location_data")
 
 
 class CameraInformation(Base):
     """
-    Información técnica de la cámara que capturó la imagen.
+    Technical camera information for an image.
 
-    Atributos:
-        image_id (int): Clave foránea que hace referencia a la imagen asociada.
-        camera (str): Nombre o tipo de la cámara.
-        focal_length (float): Longitud focal del lente usado.
-        tilt (str): Inclinación de la cámara.
-        format (str): Formato de imagen utilizado.
-        camera_metadata (str): Otros metadatos relevantes de la cámara.
+    Attributes:
+        image_id (int): Foreign key referencing the associated image.
+        camera (str): Camera name or type.
+        focal_length (float): Lens focal length.
+        tilt (str): Camera tilt.
+        format (str): Image format used.
+        camera_metadata (str): Additional camera metadata.
 
-    Relaciones:
-        image (Image): Imagen asociada a esta información de cámara.
+    Relationships:
+        image (Image): Image associated with this camera information.
     """
-    __tablename__ = 'CameraInformation'
 
-    image_id = Column(Integer, ForeignKey('Image.image_id'), primary_key=True)
+    __tablename__ = "CameraInformation"
+
+    image_id = Column(Integer, ForeignKey("Image.image_id"), primary_key=True)
     camera = Column(String(100), nullable=True)
     focal_length = Column(Float, nullable=True)
     tilt = Column(String(50), nullable=True)
@@ -120,50 +129,51 @@ class CameraInformation(Base):
 
 class Metadatos(Base):
     """
-    Vista combinada que reúne todos los metadatos relacionados con una imagen.
+    Combined view that aggregates all metadata related to an image.
 
-    Atributos:
-        id (int): Identificador único.
-        imagen (str): Nombre del archivo de imagen.
-        nasa_id (str): Identificador de imagen proporcionado por NASA.
-        fecha (date): Fecha de captura.
-        hora (time): Hora de captura.
-        resolucion (str): Resolución de la imagen.
-        nadir_lat (float): Latitud en el punto nadir.
-        nadir_lon (float): Longitud en el punto nadir.
-        center_lat (float): Latitud del centro de la imagen.
-        center_lon (float): Longitud del centro de la imagen.
-        nadir_center (str): Descripción de la ubicación central.
-        altitud (float): Altitud de la captura.
-        lugar (str): Lugar asociado a la imagen (si aplica).
-        elevacion_sol (float): Elevación solar al momento de la imagen.
-        azimut_sol (float): Azimut solar al momento de la imagen.
-        cobertura_nubosa (float): Cobertura nubosa en porcentaje.
-        camara (str): Tipo o modelo de cámara.
-        longitud_focal (float): Longitud focal del lente.
-        inclinacion (str): Ángulo de inclinación de la cámara.
-        formato (str): Formato de la imagen.
-        camara_metadatos (str): Información adicional sobre la cámara.
+    Attributes:
+        id (int): Unique identifier.
+        image (str): Image filename.
+        nasa_id (str): Image identifier provided by NASA.
+        date (date): Capture date.
+        time (time): Capture time.
+        resolution (str): Image resolution.
+        nadir_lat (float): Latitude at the nadir point.
+        nadir_lon (float): Longitude at the nadir point.
+        center_lat (float): Center latitude.
+        center_lon (float): Center longitude.
+        nadir_center (str): Description of central position.
+        altitude (float): Capture altitude.
+        place (str): Place associated with the image (if applicable).
+        elevacion_sol (float): Solar elevation at capture time.
+        azimut_sol (float): Solar azimuth at capture time.
+        cobertura_nubosa (float): Cloud cover percentage.
+        camera (str): Camera type or model.
+        longitude_focal (float): Lens focal length.
+        inclinacion (str): Camera tilt angle.
+        formato (str): Image format.
+        camera_metadata (str): Additional camera information.
     """
-    __tablename__ = 'Metadatos'  # Vista
+
+    __tablename__ = "Metadatos"  # Vista
     id = Column(Integer, primary_key=True)
-    imagen = Column(String)
+    image = Column(String)
     nasa_id = Column(String)
-    fecha = Column(Date)
-    hora = Column(Time)
-    resolucion = Column(String)
+    date = Column(Date)
+    time = Column(Time)
+    resolution = Column(String)
     nadir_lat = Column(Float)
     nadir_lon = Column(Float)
     center_lat = Column(Float)
     center_lon = Column(Float)
     nadir_center = Column(String)
-    altitud = Column(Float)
-    lugar = Column(String)
+    altitude = Column(Float)
+    place = Column(String)
     elevacion_sol = Column(Float)
     azimut_sol = Column(Float)
     cobertura_nubosa = Column(Float)
-    camara = Column(String)
-    longitud_focal = Column(Float)
+    camera = Column(String)
+    longitude_focal = Column(Float)
     inclinacion = Column(String)
     formato = Column(String)
-    camara_metadatos = Column(String)
+    camera_metadata = Column(String)

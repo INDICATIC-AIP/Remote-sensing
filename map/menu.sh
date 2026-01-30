@@ -5,36 +5,36 @@ PROJECT_DIR="$SCRIPT_DIR/.."
 . "$PROJECT_DIR/venv/bin/activate"
 
 if grep -qs '/mnt/nas' /proc/mounts; then
-    echo "El NAS ya se encuentra montado."
+    echo "NAS is already mounted."
 else
-    echo "El NAS no se encuentra montado."
-    # bash "$SCRIPT_DIR/montar_nas.sh"
+    echo "NAS is not mounted."
+    # bash "$SCRIPT_DIR/mount_nas.sh"
 fi
-# "Descarga Automática"   "Mapa Nocturno"  "Borrar logs" --prompt="🛰️ "
-options=("ISS" "NOAA" "Ver Metadatos" "Ver Imagenes" "Salir")
+# "Automatic Download"   "Night Map"  "Clear logs"
+options=("ISS" "NOAA" "View Metadata" "View Images" "Exit")
 
 while true; do
     
-    echo "Usa la rueda o el mouse para moverte y presiona Enter o clic para seleccionar:"
+    echo "Use the wheel or mouse to move and press Enter or click to select:"
     echo
 
-    selected_option=$(printf '%s\n' "${options[@]}" | fzf --reverse --border   --height=50% --margin=1 --pointer="➤")
+    selected_option=$(printf '%s\n' "${options[@]}" | fzf --reverse --border --height=50% --margin=1 --pointer=">")
 
     if [[ -z "$selected_option" ]]; then
-        echo "Selección cancelada. Saliendo..."
+        echo "Selection canceled. Exiting..."
         break
     fi
 
     echo
-    echo "Ejecutando: $selected_option"
+    echo "Running: $selected_option"
     echo
 
-    if [[ "$selected_option" == "Salir" ]]; then
-        echo "Saliendo del menú..."
+    if [[ "$selected_option" == "Exit" ]]; then
+        echo "Exiting menu..."
         break
     else
-        bash "$SCRIPT_DIR/solucion.sh" "$selected_option"
-        # echo -e "\nPresiona cualquier tecla para volver al menú..."
+        bash "$SCRIPT_DIR/solution.sh" "$selected_option"
+        # echo -e "\nPress any key to return to the menu..."
         # read -rsn1
     fi
 done

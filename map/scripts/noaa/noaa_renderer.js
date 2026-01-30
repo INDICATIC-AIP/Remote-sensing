@@ -15,7 +15,7 @@ let sidebarVisible = true;
 let cachedDriveImages = null;
 document.addEventListener("DOMContentLoaded", function () {
   try {
-    // Inicializar mapa
+    // Initialize map
     map = L.map('map', {
       zoomControl: false,
       attributionControl: false
@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     loadTileData();
 
-    // Event listeners con comprobaciones defensivas
+    // Event listeners with defensive checks
     const fechaEl = document.getElementById("fecha");
     if (fechaEl) {
       fechaEl.addEventListener("change", cambiarCapa);
@@ -93,16 +93,16 @@ document.addEventListener("DOMContentLoaded", function () {
       map.on('mousemove', updateCoordinateInfo);
     }
 
-    // Escuchar mensajes de verificación
+    // Listen for verification messages
     ipcRenderer.on("noaa-check-log", (event, message) => {
       showStatus(message);
     });
 
-    console.log("✅ NOAA Renderer inicializado correctamente");
+    console.log("[INFO] NOAA Renderer initialized successfully");
 
   } catch (error) {
-    console.error("❌ Error inicializando NOAA Renderer:", error);
-    showStatus("Error inicializando la aplicación: " + error.message, "error");
+    console.error("[ERROR] Error initializing NOAA Renderer:", error);
+    showStatus("Error initializing application: " + error.message, "error");
   }
 });
 
@@ -142,14 +142,14 @@ async function cargarTareasNoaa() {
         <td>${t.hora || "—"}</td>
         <td>${t.intervalo || "1"}</td>
         <td>
-          <button onclick="rellenarFormulario('${t.id}', '${t.frecuencia}', '${t.hora}', '${t.intervalo}')">✏️</button>
-          <button onclick="eliminarTareaNoaa('${t.id}')">🗑</button>
+          <button onclick="rellenarFormulario('${t.id}', '${t.frecuencia}', '${t.hora}', '${t.intervalo}')">Edit</button>
+          <button onclick="eliminarTareaNoaa('${t.id}')">Delete</button>
         </td>
       `;
       tbody.appendChild(fila);
     });
   } catch (err) {
-    console.error("Error cargando tareas NOAA:", err);
+    console.error("Error loading NOAA tasks:", err);
   }
 }
 
@@ -198,7 +198,7 @@ async function guardarTareaNoaa() {
     showStatus(result.message, "success");
     cerrarModalTareas();
   } catch (err) {
-    showStatus("Error creando tarea: " + err.message, "error");
+    showStatus("Error creating task: " + err.message, "error");
   }
 }
 
@@ -217,25 +217,25 @@ async function eliminarTareaNoaa(taskId) {
     const nuevas = tareas.filter(t => t.id !== taskId);
     fs.writeFileSync(ruta, JSON.stringify(nuevas, null, 2), "utf-8");
 
-    showStatus("Tarea eliminada correctamente", "success");
+    showStatus("Task deleted successfully", "success");
     await cargarTareasNoaa();
   } catch (err) {
-    showStatus("Error eliminando tarea: " + err.message, "error");
+    showStatus("Error deleting task: " + err.message, "error");
   }
 }
 
 
 
 async function generarTiles() {
-  showStatus("Regenerando tiles... Esto puede tardar unos segundos.", "loading");
+  showStatus("Regenerating tiles... This may take a few seconds.", "loading");
 
   ipcRenderer.invoke("generate-tiles").then(() => {
-    showStatus("Tiles regenerados correctamente. Recargando...", "success");
+    showStatus("Tiles regenerated successfully. Reloading...", "success");
     setTimeout(() => {
-      location.reload();  // Fuerza recarga completa
+      location.reload();  // Force complete reload
     }, 2000);
   }).catch(err => {
-    showStatus("Error al regenerar tiles: " + err.message, "error");
+    showStatus("Error regenerating tiles: " + err.message, "error");
   });
 }
 
@@ -270,9 +270,9 @@ async function generarTiles() {
 // }
 
 ipcRenderer.on("export-progress", (event, message) => {
-  console.log("📥 Mensaje recibido:", message);
+  console.log("Message received:", message);
 
-  // Progreso de lanzamiento
+  // Launch progress
   if (message.includes("ProgresoLanzado:")) {
     const match = message.match(/ProgresoLanzado:\s*(\d+)\/(\d+)/);
     if (match) {
@@ -281,13 +281,13 @@ ipcRenderer.on("export-progress", (event, message) => {
       const percent = Math.round((actual / total) * 100);
       NProgress.set(percent / 100);
 
-      // mostrarProgresoAlerta(`🚀 Lanzadas: ${actual}/${total} (${percent}%)`);
-      mostrarProgresoAlerta(`🚀 Lanzadas: ${actual}/${total} (${percent}%)`, percent);
+      // mostrarProgresoAlerta(`Launched: ${actual}/${total} (${percent}%)`);
+      mostrarProgresoAlerta(`Launched: ${actual}/${total} (${percent}%)`, percent);
 
     }
   }
 
-  // Progreso real de completadas
+  // Real progress of completed tasks
   if (message.includes("ProgresoReal:")) {
     const match = message.match(/ProgresoReal:\s*(\d+)\/(\d+)/);
     if (match) {
@@ -296,13 +296,13 @@ ipcRenderer.on("export-progress", (event, message) => {
       const percent = Math.round((actual / total) * 100);
       NProgress.set(percent / 100);
 
-      mostrarProgresoAlerta(`📥 Completadas: ${actual}/${total} (${percent}%)`);
+      mostrarProgresoAlerta(`Completed: ${actual}/${total} (${percent}%)`);
 
       if (actual === total) {
         setTimeout(() => {
           NProgress.done();
           ocultarProgresoAlerta();
-          showStatus("Todas las imágenes han sido exportadas correctamente.", "success");
+          showStatus("All images have been exported successfully.", "success");
         }, 1000);
       }
     }
@@ -310,11 +310,11 @@ ipcRenderer.on("export-progress", (event, message) => {
 });
 
 
-// Función mejorada para mostrar progreso con más detalles
+// Improved function to show progress with more details
 function mostrarProgresoAlerta(texto, percent = null) {
   const alerta = document.getElementById("progreso-alerta");
 
-  // Crear barra de progreso visual si se proporciona porcentaje
+  // Create visual progress bar if percentage is provided
   let progressBar = '';
   if (percent !== null) {
     progressBar = `
@@ -350,17 +350,17 @@ function mostrarProgresoAlerta(texto, percent = null) {
       transition: background-color 0.3s;
     " onmouseover="this.style.backgroundColor='rgba(255,255,255,0.3)'" 
        onmouseout="this.style.backgroundColor='rgba(255,255,255,0.2)'">
-      Ocultar
+      Hide
     </button>
   `;
   alerta.style.display = "block";
 }
 
-// Función mejorada para manejar progreso de exportación
+// Improved function to handle export progress
 ipcRenderer.on("export-progress", (event, message) => {
-  console.log("📥 Mensaje recibido:", message);
+  console.log("Message received:", message);
 
-  // Progreso de lanzamiento de tareas
+  // Progress of launched tasks
   if (message.includes("ProgresoLanzado:")) {
     const match = message.match(/ProgresoLanzado:\s*(\d+)\/(\d+)/);
     if (match) {
@@ -368,17 +368,17 @@ ipcRenderer.on("export-progress", (event, message) => {
       const total = parseInt(match[2]);
       const percent = Math.round((actual / total) * 100);
 
-      // Actualizar barra de progreso principal
-      NProgress.set(0.3); // Lanzamiento completo = 30%
+      // Update main progress bar
+      NProgress.set(0.3); // Launching complete = 30%
 
       mostrarProgresoAlerta(
-        `🚀 Tareas lanzadas: ${actual}/${total} (${percent}%)`,
+        `Tasks launched: ${actual}/${total} (${percent}%)`,
         percent
       );
     }
   }
 
-  // Progreso real de tareas completadas
+  // Real progress of completed tasks
   if (message.includes("ProgresoReal:")) {
     const match = message.match(/ProgresoReal:\s*(\d+)\/(\d+)/);
     if (match) {
@@ -386,37 +386,37 @@ ipcRenderer.on("export-progress", (event, message) => {
       const total = parseInt(match[2]);
       const percent = Math.round((actual / total) * 100);
 
-      // Progreso real va del 30% al 100%
+      // Real progress goes from 30% to 100%
       const nprogress_value = 0.3 + (percent / 100) * 0.7;
       NProgress.set(nprogress_value);
 
       mostrarProgresoAlerta(
-        `📥 Tareas completadas: ${actual}/${total} (${percent}%)`,
+        `Tasks completed: ${actual}/${total} (${percent}%)`,
         percent
       );
 
-      // Si todas están completadas
+      // If all are completed
       if (actual === total) {
         setTimeout(() => {
           NProgress.done();
-          mostrarProgresoAlerta("¡Exportación completada exitosamente!", 100);
+          mostrarProgresoAlerta("Export completed successfully!", 100);
 
-          // Auto-ocultar después de 3 segundos
+          // Auto-hide after 3 seconds
           setTimeout(() => {
             ocultarProgresoAlerta();
-            showStatus("Todas las imágenes han sido exportadas y organizadas.", "success");
+            showStatus("All images have been exported and organized.", "success");
           }, 3000);
         }, 1000);
       }
     }
   }
 
-  // Manejar otros mensajes de estado
-  if (message.includes("📊 Progreso:")) {
-    // Extraer información detallada del progreso
-    const progressMatch = message.match(/📊 Progreso: ([\d.]+)%/);
+  // Handle other status messages
+  if (message.includes("Progress:")) {
+    // Extract detailed progress information
+    const progressMatch = message.match(/Progress: ([\d.]+)%/);
     const completedMatch = message.match(/(\d+)/);
-    const runningMatch = message.match(/🔄 (\d+)/);
+    const runningMatch = message.match(/RUNNING (\d+)/);
     const failedMatch = message.match(/(\d+)/);
 
     if (progressMatch && completedMatch) {
@@ -426,49 +426,49 @@ ipcRenderer.on("export-progress", (event, message) => {
       const failed = failedMatch ? parseInt(failedMatch[1]) : 0;
 
       mostrarProgresoAlerta(
-        `📊 ${progressPct.toFixed(1)}% | ✅${completed} 🔄${running} ❌${failed}`,
+        `${progressPct.toFixed(1)}% | [OK]${completed} [RUNNING]${running} [ERROR]${failed}`,
         progressPct
       );
     }
   }
 });
 
-// Función mejorada para exportar con mejor feedback
+// Improved function to export with better feedback
 function exportarImagenes() {
-  showStatus("Preparando exportación de imágenes...", "loading");
+  showStatus("Preparing image export...", "loading");
 
-  // Inicializar progreso
+  // Initialize progress
   NProgress.start();
   NProgress.set(0);
 
-  // Mostrar alerta inicial
-  mostrarProgresoAlerta("🔧 Preparando exportación...", 0);
+  // Show initial alert
+  mostrarProgresoAlerta("Preparing export...", 0);
 
   ipcRenderer.invoke("export-all")
     .then(() => {
-      console.log("Exportación iniciada correctamente");
-      // No ocultar progreso aquí - se maneja en los eventos
+      console.log("Export started successfully");
+      // Don't hide progress here - managed in events
     })
     .catch(err => {
       NProgress.done();
       ocultarProgresoAlerta();
-      showStatus("Error al exportar imágenes: " + err.message, "error");
-      console.error("Error en exportación:", err);
+      showStatus("Error exporting images: " + err.message, "error");
+      console.error("Export error:", err);
     });
 }
 
-// Función mejorada para ocultar progreso
+// Improved function to hide progress
 function ocultarProgresoAlerta() {
   const alerta = document.getElementById("progreso-alerta");
   alerta.style.opacity = "0";
 
   setTimeout(() => {
     alerta.style.display = "none";
-    alerta.style.opacity = "1"; // Resetear para próxima vez
+    alerta.style.opacity = "1"; // Reset for next time
   }, 300);
 }
 
-// Añadir estilos CSS para mejores transiciones
+// Add CSS styles for better transitions
 const progressStyles = `
   #progreso-alerta {
     transition: opacity 0.3s ease-in-out;
@@ -481,7 +481,7 @@ const progressStyles = `
   }
 `;
 
-// Inyectar estilos
+// Inject styles
 const styleSheet = document.createElement("style");
 styleSheet.textContent = progressStyles;
 document.head.appendChild(styleSheet);
@@ -510,13 +510,13 @@ function toggleSidebar() {
   const toggleBtn = document.getElementById("toggle-sidebar");
 
   if (!sidebar || !toggleBtn) {
-    console.warn("Elementos de sidebar no encontrados");
+    console.warn("Sidebar elements not found");
     return;
   }
 
   sidebarVisible = !sidebarVisible;
   sidebar.style.transform = sidebarVisible ? "translateX(0)" : "translateX(100%)";
-  toggleBtn.innerHTML = sidebarVisible ? "❯" : "❮";
+  toggleBtn.innerHTML = sidebarVisible ? ">" : "<";
   toggleBtn.style.right = sidebarVisible ? "350px" : "0";
 }
 
@@ -553,12 +553,12 @@ function toggleSidebar() {
 //   }
 // }
 async function loadTileData() {
-  showStatus("Cargando datos de tiles...", "loading");
+  showStatus("Loading tile data...", "loading");
 
 
   if (!fs.existsSync(tileFilePath)) {
-    showStatus("No se encontró el archivo tiles_panama.json. Creando...", "loading");
-    await ipcRenderer.invoke("generate-tiles"); // O pasa la ruta si lo necesitas
+    showStatus("tiles_panama.json not found. Creating...", "loading");
+    await ipcRenderer.invoke("generate-tiles"); // Or pass the path if needed
   }
 
   try {
@@ -583,7 +583,7 @@ async function loadTileData() {
     });
 
     const viirsGroup = document.createElement("optgroup");
-    viirsGroup.label = "VIIRS mensual (2014–2025)";
+    viirsGroup.label = "VIIRS monthly (2014–2025)";
     viirsKeys.forEach(k => {
       const option = document.createElement("option");
       option.value = k;
@@ -595,15 +595,15 @@ async function loadTileData() {
     selector.appendChild(viirsGroup);
 
     if (dmspKeys.length + viirsKeys.length > 0) {
-      selector.value = viirsKeys[viirsKeys.length - 1]; // Selecciona la más reciente
+      selector.value = viirsKeys[viirsKeys.length - 1]; // Select most recent
       cambiarCapa();
       hideStatus();
     } else {
-      showStatus("No se encontraron datos en tiles_panama.json", "error");
+      showStatus("No data found in tiles_panama.json", "error");
     }
 
   } catch (err) {
-    showStatus("Error leyendo tiles: " + err.message, "error");
+    showStatus("Error reading tiles: " + err.message, "error");
   }
 }
 
@@ -613,7 +613,7 @@ function cambiarCapa() {
   const opacidadEl = document.getElementById("opacidad");
   
   if (!fechaEl || !opacidadEl) {
-    console.warn("Elementos de fecha u opacidad no encontrados");
+    console.warn("Date or opacity elements not found");
     return;
   }
 
@@ -621,7 +621,7 @@ function cambiarCapa() {
   const opacity = parseFloat(opacidadEl.value);
 
   if (!fecha || !tileData[fecha]) {
-    showStatus("No hay datos para el año " + fecha, "error");
+    showStatus("No data for year " + fecha, "error");
     return;
   }
 
@@ -633,7 +633,7 @@ function cambiarCapa() {
   }
 
   if (url) {
-    showStatus("Cargando capa " + fecha + "...", "loading");
+    showStatus("Loading layer " + fecha + "...", "loading");
 
     currentLayer = L.tileLayer(url, {
       attribution: "NOAA / Earth Engine",
@@ -642,29 +642,29 @@ function cambiarCapa() {
       maxZoom: 12
     }).addTo(map);
 
-    // Detectar error 401
+    // Detect 401 error
     currentLayer.on('tileerror', function (errorEvent) {
       const tile = errorEvent?.tile;
 
       if (tile?.src && tile.src.includes("401")) {
         document.getElementById("btn-regenerar-tiles").style.display = "inline-block";
-        showStatus("⚠️ El token de los tiles ha expirado. Haz clic en 'Regenerar Tiles' para actualizar.", "error");
+        showStatus("[WARNING] Tile token has expired. Click 'Regenerate Tiles' to update.", "error");
         return;
       }
 
-      // Fallback: por si no está en el src
+      // Fallback: in case it's not in the src
       try {
         const imgRequest = new XMLHttpRequest();
         imgRequest.open('GET', tile.src, true);
         imgRequest.onreadystatechange = function () {
           if (imgRequest.readyState === 4 && imgRequest.status === 401) {
             document.getElementById("btn-regenerar-tiles").style.display = "inline-block";
-            showStatus("⚠️ El token ha expirado. Pulsa 'Regenerar Tiles'.", "error");
+            showStatus("[WARNING] Token has expired. Click 'Regenerate Tiles'.", "error");
           }
         };
         imgRequest.send();
       } catch (e) {
-        console.warn("Error verificando tile 401:", e);
+        console.warn("Error verifying 401 tile:", e);
       }
     });
 
@@ -678,27 +678,27 @@ function cambiarCapa() {
 
 function updateInfoText(fecha) {
   const info = document.getElementById("info");
-  const type = tileData[fecha]?.type || "Desconocido";
+  const type = tileData[fecha]?.type || "Unknown";
   const resolution = tileData[fecha]?.resolution || "N/A";
 
-  info.innerHTML = `Año: ${fecha} | Tipo: ${type} | Resolución: ${resolution}`;
+  info.innerHTML = `Year: ${fecha} | Type: ${type} | Resolution: ${resolution}`;
 }
 
 async function fetchDriveImages() {
   const container = document.getElementById("imagenes-drive");
-  showStatusInElement(container, "Cargando imágenes desde Drive...");
+  showStatusInElement(container, "Loading images from Drive...");
 
   try {
     if (!cachedDriveImages) {
       const resultado = await ipcRenderer.invoke("listar-imagenes-drive");
 
       if (resultado.error) {
-        showStatusInElement(container, "⚠️ Error al obtener imágenes: " + resultado.message, "error");
+        showStatusInElement(container, "[WARNING] Error retrieving images: " + resultado.message, "error");
         return false;
       }
 
       if (!resultado || resultado.length === 0) {
-        showStatusInElement(container, "No se encontraron imágenes en Drive", "info");
+        showStatusInElement(container, "No images found in Drive", "info");
         return false;
       }
 
@@ -708,7 +708,7 @@ async function fetchDriveImages() {
     return true;
   } catch (e) {
     console.error(e);
-    showStatusInElement(container, "Error inesperado: " + e.message, "error");
+    showStatusInElement(container, "Unexpected error: " + e.message, "error");
     return false;
   }
 }
@@ -726,12 +726,12 @@ function filtrarImagenes() {
   const container = document.getElementById("imagenes-drive");
   
   if (!container) {
-    console.warn("Contenedor de imágenes no encontrado");
+    console.warn("Image container not found");
     return;
   }
 
   if (!cachedDriveImages) {
-    container.innerHTML = `<div class="status-message info">Primero haz clic en 'Cargar imágenes locales'</div>`;
+    container.innerHTML = `<div class="status-message info">Click 'Load local images' first</div>`;
     return;
   }
 
@@ -756,7 +756,7 @@ function filtrarImagenes() {
   });
 
   if (filtrados.length === 0) {
-    container.innerHTML = `<div class="status-message info">No hay resultados para los filtros aplicados</div>`;
+    container.innerHTML = `<div class="status-message info">No results for the applied filters</div>`;
     return;
   }
 {/* <a href="${file.path}" target="_blank">📂 Ver imagen local</a> */}
@@ -768,7 +768,7 @@ function filtrarImagenes() {
       </p>
       <div class="metadata-container">
         <details>
-          <summary>Ver metadatos</summary>
+          <summary>View metadata</summary>
           <ul class="metadata-list">
             ${Object.entries(file.metadata).map(([key, val]) => `<li><strong>${key}:</strong> <span>${val}</span></li>`).join("")}
           </ul>
@@ -786,7 +786,7 @@ function showStatus(message, type = "loading") {
   if (type === "loading") {
     statusEl.innerHTML = `<div class="loader"></div>${message}`;
   } else {
-    const icon = type === "success" ? "✅" : type === "error" ? "❌" : "ℹ️";
+    const icon = type === "success" ? "[OK]" : type === "error" ? "[ERROR]" : "[INFO]";
     statusEl.innerHTML = `${icon} ${message}`;
   }
 
@@ -802,7 +802,7 @@ function showStatusInElement(element, message, type = "loading") {
   if (type === "loading") {
     element.innerHTML = `<div class="status-message ${type}"><div class="loader"></div>${message}</div>`;
   } else {
-    const icon = type === "success" ? "✅" : type === "error" ? "❌" : "ℹ️";
+    const icon = type === "success" ? "[OK]" : type === "error" ? "[ERROR]" : "[INFO]";
     element.innerHTML = `<div class="status-message ${type}">${icon} ${message}</div>`;
   }
 }
@@ -814,19 +814,19 @@ async function configurarVerificacionAutomatica() {
   const taskId = "NOAA_AUTO_CHECK";
 
   if (!time) {
-    showStatus("Por favor selecciona una hora para la verificación", "error");
+    showStatus("Please select a time for verification", "error");
     return;
   }
 
   try {
-    // Primero eliminar la tarea si existe
+    // First delete task if exists
     try {
       await ipcRenderer.invoke("eliminarTareaWindows", taskId);
     } catch (e) {
-      console.log("No había tarea previa que eliminar");
+      console.log("No previous task to delete");
     }
 
-    // Crear nueva tarea
+    // Create new task
     const args = {
       taskId,
       hora: time,
@@ -835,9 +835,9 @@ async function configurarVerificacionAutomatica() {
     };
 
     await ipcRenderer.invoke("crearTareaNOAA", args);
-    showStatus("Verificación automática configurada correctamente", "success");
+    showStatus("Automatic verification configured successfully", "success");
   } catch (err) {
-    showStatus("Error configurando verificación automática: " + err.message, "error");
+    showStatus("Error configuring automatic verification: " + err.message, "error");
   }
 }
 
@@ -845,16 +845,16 @@ async function cargarImagenesLocales() {
   const container = document.getElementById("imagenes-drive");
   
   if (!container) {
-    console.warn("Contenedor imagenes-drive no encontrado");
+    console.warn("imagenes-drive container not found");
     return;
   }
   
-  container.innerHTML = `<div class="status-message loading"><div class="loader"></div>Cargando imágenes locales...</div>`;
+  container.innerHTML = `<div class="status-message loading"><div class="loader"></div>Loading local images...</div>`;
 
   try {
-    // La ruta correcta al archivo de metadatos
-    const response = await fetch("../../backend/API-NASA/metadatos_noaa.json");
-    if (!response.ok) throw new Error(`Error cargando metadatos: ${response.status} ${response.statusText}`);
+    // The correct path to metadata file
+    const response = await fetch("../../backend/API-NASA/noaa_metadata.json");
+    if (!response.ok) throw new Error(`Error loading metadata: ${response.status} ${response.statusText}`);
 
     const metadatos = await response.json();
     const imagenes = [];
@@ -862,7 +862,7 @@ async function cargarImagenesLocales() {
     for (const id in metadatos) {
       const meta = metadatos[id];
       const dataset = meta.dataset;
-      const fecha = id;  // Usa el ID como identificador
+      const fecha = id;  // Use ID as identifier
       const subfolder = dataset === "VIIRS" ? "VIIRS" : "DMSP-OLS";
 
       const localPath = `../../backend/API-NASA/${subfolder}/noaa_${fecha}.tif`;
@@ -878,15 +878,15 @@ async function cargarImagenesLocales() {
 
     cachedDriveImages = imagenes;
     
-    console.log(`📊 Cargadas ${imagenes.length} imágenes desde backend/API-NASA/metadatos_noaa.json`);
+    console.log(`Loaded ${imagenes.length} images from backend/API-NASA/noaa_metadata.json`);
     
     filtrarImagenes();
 
   } catch (err) {
-    console.error("❌ Error cargando imágenes locales:", err);
+    console.error("Error loading local images:", err);
     container.innerHTML = `<div class="status-message error">
-      ❌ Error cargando imágenes locales: ${err.message}<br>
-      <small>Archivo buscado en: backend/API-NASA/metadatos_noaa.json</small>
+      [ERROR] Error loading local images: ${err.message}<br>
+      <small>File searched at: backend/API-NASA/noaa_metadata.json</small>
     </div>`;
   }
 }
@@ -902,7 +902,7 @@ function cerrarModalExportar() {
 
 async function cargarPendientesExport() {
   const contenedor = document.getElementById("lista-pendientes");
-  contenedor.innerHTML = `<p>Cargando imágenes...</p>`;
+  contenedor.innerHTML = `<p>Loading images...</p>`;
   try {
     pendientesExportar = await ipcRenderer.invoke("listar-candidatos-export");
     pagina = 1;
@@ -932,8 +932,8 @@ function actualizarResumen() {
   
   const seleccionado = filtroDatasetEl ? filtroDatasetEl.value : "";
 
-  let texto = `Total: ${totalTodos} imágenes | DMSP: ${totalDMSP} | VIIRS: ${totalVIIRS}`;
-  if (seleccionado) texto += ` | Mostrando: ${filtradosDataset.length}`;
+  let texto = `Total: ${totalTodos} images | DMSP: ${totalDMSP} | VIIRS: ${totalVIIRS}`;
+  if (seleccionado) texto += ` | Showing: ${filtradosDataset.length}`;
   
   if (resumenTotalEl) {
     resumenTotalEl.innerText = texto;
@@ -943,7 +943,7 @@ function actualizarResumen() {
 function renderizarPendientes() {
   const contenedor = document.getElementById("lista-pendientes");
   if (!filtradosDataset.length) {
-    contenedor.innerHTML = `<p>No hay imágenes nuevas para exportar.</p>`;
+    contenedor.innerHTML = `<p>No new images to export.</p>`;
     return;
   }
 
@@ -976,7 +976,7 @@ function renderizarPendientes() {
   const nextPagEl = document.getElementById("next-pag");
   
   if (paginaActualEl) {
-    paginaActualEl.innerText = `Página ${pagina} de ${Math.ceil(filtradosDataset.length / porPagina)}`;
+    paginaActualEl.innerText = `Page ${pagina} of ${Math.ceil(filtradosDataset.length / porPagina)}`;
   }
   
   if (prevPagEl) {

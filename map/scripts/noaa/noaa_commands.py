@@ -5,14 +5,14 @@ from datetime import datetime
 import os
 from io import StringIO
 
-#  IMPORTAR LOG_CUSTOM
+# Import log_custom helper
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "utils")))
 from log import log_custom
 
 if len(sys.argv) < 2:
     log_custom(
-        "Error Uso",
-        "Uso: generate_tiles | export_all | listar-candidatos-export | get_metadata YEAR | generate_metadata",
+        "Usage Error",
+        "Usage: generate_tiles | export_all | listar-candidatos-export | get_metadata YEAR | generate_metadata",
         "../logs/noaa/general.log",
     )
     sys.exit(1)
@@ -34,14 +34,14 @@ elif cmd == "export_all":
 elif cmd == "listar-candidatos-export":
     from noaa_processor import set_silent_mode
 
-    #  ACTIVAR SILENT MODE ANTES DE CREAR PROCESSOR
+    # Enable silent mode before creating the processor
     set_silent_mode(True)
 
     from noaa_processor import NOAAProcessor
 
     processor = NOAAProcessor()
 
-    metadatos = processor._cargar_json("scripts/noaa/ui/metadatos_noaa.json")
+    metadatos = processor._cargar_json("scripts/noaa/ui/noaa_metadata.json")
     resultados = []
 
     colecciones = [
@@ -76,7 +76,10 @@ elif cmd == "get_metadata":
 
     if len(sys.argv) < 3:
         log_custom(
-            "Error Parámetros", "Falta el año", "ERROR", "../logs/noaa/general.log"
+            "Parameter Error",
+            "Missing year argument",
+            "ERROR",
+            "../logs/noaa/general.log",
         )
         sys.exit(1)
 
@@ -92,19 +95,19 @@ elif cmd == "get_metadata":
 
 elif cmd == "generate_metadata":
     from noaa_processor import NOAAProcessor
-    
+
     processor = NOAAProcessor()
-    
-    # Generar archivo metadatos_noaa.json
+
+    # Generate metadata_noaa.json
     success = processor.generate_metadata_file()
-    
+
     if success:
-        print(" Archivo metadatos_noaa.json generado correctamente")
+        print("metadata_noaa.json generated successfully")
     else:
-        print(" Error generando archivo metadatos_noaa.json")
+        print("Error generating metadata_noaa.json")
         sys.exit(1)
 
 else:
     log_custom(
-        "Error Comando", "Comando no reconocido", "ERROR", "../logs/noaa/general.log"
+        "Command Error", "Unrecognized command", "ERROR", "../logs/noaa/general.log"
     )

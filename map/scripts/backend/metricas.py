@@ -12,43 +12,43 @@ class MetricasSimples:
         self.fallidas = 0
         self.duplicadas = 0
         self.total_bytes = 0
-        self.errores = []
-        self.tamaños_archivos = []  # Para calcular peso promedio
+        self.errors = []
+        self.sizes_files = []  # Para calcular peso promedio
         self.formatos = {}  # Para contar formatos: {'jpg': 45, 'tif': 23, 'png': 2}
 
 
         
-    def registrar_exitosa(self, metadata=None, archivo_descargado=None):
+    def registrar_exitosa(self, metadata=None, file_descargado=None):
         self.exitosas += 1
         
-        # Usar solo tamaño real del archivo descargado
-        tamaño_archivo = 0
+        # Usar solo size real del file descargado
+        size_file = 0
         formato = "desconocido"
         
-        if archivo_descargado:
+        if file_descargado:
             try:
                 import os
-                if os.path.exists(archivo_descargado):
-                    # Obtener tamaño real del archivo
-                    tamaño_archivo = os.path.getsize(archivo_descargado)
+                if os.path.exists(file_descargado):
+                    # Obtener size real del file
+                    size_file = os.path.getsize(file_descargado)
                     
-                    # Detectar formato del archivo real
-                    if archivo_descargado.lower().endswith(('.jpg', '.jpeg')):
+                    # Detectar formato del file real
+                    if file_descargado.lower().endswith(('.jpg', '.jpeg')):
                         formato = "JPG"
-                    elif archivo_descargado.lower().endswith(('.tif', '.tiff')):
+                    elif file_descargado.lower().endswith(('.tif', '.tiff')):
                         formato = "TIFF"
-                    elif archivo_descargado.lower().endswith('.png'):
+                    elif file_descargado.lower().endswith('.png'):
                         formato = "PNG"
                     else:
                         formato = "OTRO"
                 else:
-                    print(f" Archivo no encontrado para medir: {archivo_descargado}")
-                    return  # No registrar si no existe el archivo
+                    print(f" Archivo no encontrado para medir: {file_descargado}")
+                    return  # No registrar si no existe el file
             except Exception as e:
-                print(f" Error midiendo archivo {archivo_descargado}: {e}")
+                print(f" Error midiendo file {file_descargado}: {e}")
                 return  # No registrar si hay error
         else:
-            # Si no se proporciona ruta de archivo, detectar desde URL
+            # Si no se proporciona path de file, detectar desde URL
             if metadata and "URL" in metadata:
                 url = metadata["URL"]
                 if url.lower().endswith(('.jpg', '.jpeg')):
@@ -58,13 +58,13 @@ class MetricasSimples:
                 elif url.lower().endswith('.png'):
                     formato = "PNG"
             
-            print(f" No se proporcionó ruta de archivo para medir tamaño real")
-            return  # No registrar sin archivo real
+            print(f" No se proporcionó path de file para medir size real")
+            return  # No registrar sin file real
         
-        # Solo registrar si tenemos tamaño real
-        if tamaño_archivo > 0:
-            self.total_bytes += tamaño_archivo
-            self.tamaños_archivos.append(tamaño_archivo)
+        # Solo registrar si tenemos size real
+        if size_file > 0:
+            self.total_bytes += size_file
+            self.sizes_files.append(size_file)
             
             # Contar formatos
             if formato in self.formatos:
@@ -75,7 +75,7 @@ class MetricasSimples:
     def registrar_fallida(self, error=""):
         self.fallidas += 1
         if error:
-            self.errores.append(error)
+            self.errors.append(error)
             
     def registrar_duplicada(self):
         self.duplicadas += 1
@@ -89,8 +89,8 @@ class MetricasSimples:
         
         # Calcular peso promedio
         peso_promedio_mb = 0
-        if self.tamaños_archivos:
-            peso_promedio_bytes = sum(self.tamaños_archivos) / len(self.tamaños_archivos)
+        if self.sizes_files:
+            peso_promedio_bytes = sum(self.sizes_files) / len(self.sizes_files)
             peso_promedio_mb = peso_promedio_bytes / (1024 * 1024)
         
         # Encontrar formato predominante
@@ -106,25 +106,25 @@ class MetricasSimples:
         return {
             "RESUMEN_EJECUTIVO": {
                 "Inicio": self.inicio_dt.strftime("%Y-%m-%d %H:%M:%S"),
-                "Duración_total": f"{tiempo_total/3600:.1f} horas" if tiempo_total > 3600 else f"{tiempo_total/60:.1f} minutos",
+                "Duración_total": f"{tiempo_total/3600:.1f} times" if tiempo_total > 3600 else f"{tiempo_total/60:.1f} minutos",
                 "Imágenes_exitosas": self.exitosas,
                 "Imágenes_fallidas": self.fallidas,
                 "Imágenes_duplicadas": self.duplicadas,
                 "Total_procesadas": self.exitosas + self.fallidas + self.duplicadas,
-                "Tasa_éxito": f"{(self.exitosas/(self.exitosas+self.fallidas)*100):.1f}%" if (self.exitosas+self.fallidas) > 0 else "0%",
+                "Tasa_success": f"{(self.exitosas/(self.exitosas+self.fallidas)*100):.1f}%" if (self.exitosas+self.fallidas) > 0 else "0%",
                 "MB_descargados": f"{self.total_bytes/1024/1024:.1f} MB",
-                "Peso_promedio_por_imagen": f"{peso_promedio_mb:.1f} MB",
+                "Peso_promedio_por_image": f"{peso_promedio_mb:.1f} MB",
                 "Formato_predominante": formato_predominante,
                 "Velocidad_promedio": f"{velocidad_mb_s:.1f} MB/s"
             },
             "DISTRIBUCION_FORMATOS": self.formatos,
             "ESTADISTICAS_TAMAÑO": {
-                "Peso_mínimo_MB": f"{min(self.tamaños_archivos)/(1024*1024):.1f}" if self.tamaños_archivos else "0",
-                "Peso_máximo_MB": f"{max(self.tamaños_archivos)/(1024*1024):.1f}" if self.tamaños_archivos else "0",
+                "Peso_mínimo_MB": f"{min(self.sizes_files)/(1024*1024):.1f}" if self.sizes_files else "0",
+                "Peso_máximo_MB": f"{max(self.sizes_files)/(1024*1024):.1f}" if self.sizes_files else "0",
                 "Peso_promedio_MB": f"{peso_promedio_mb:.1f}",
-                "Total_archivos_medidos": len(self.tamaños_archivos)
+                "Total_files_medidos": len(self.sizes_files)
             },
-            "ERRORES": self.errores[:10]  # Solo primeros 10 errores
+            "ERRORES": self.errors[:10]  # Solo primeros 10 errors
         }
         
     def mostrar_progreso(self, actual, total):

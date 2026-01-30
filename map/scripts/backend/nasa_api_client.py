@@ -37,12 +37,12 @@ DEFAULT_BOUNDING_BOX = {"latMin": 6.1, "latMax": 10.8, "lonMin": -82.9, "lonMax"
 class NASAAPIClient:
     """Cliente para consultas inteligentes a la API de NASA"""
 
-    def __init__(self, bounding_box: Dict = None, modo_nocturno: bool = True):
+    def __init__(self, bounding_box: Dict = None, mode_nocturno: bool = True):
         self.bounding_box = bounding_box or DEFAULT_BOUNDING_BOX
-        self.modo_nocturno = modo_nocturno
+        self.mode_nocturno = mode_nocturno
         self.coord_sources = ["frames", "nadir", "mlcoord"]
 
-        # Configuración de campos por tabla (igual que en JS)
+        # Configuración de campos por table (igual que en JS)
         self.tables = {
             "frames": [
                 "mission",
@@ -112,7 +112,7 @@ class NASAAPIClient:
             "publicfeatures": ["mission", "roll", "frame", "features"],
         }
 
-        # Mapeo de tablas permitidas por fuente
+        # Mapeo de tables permitidas por fuente
         self.allowed_return_tables = {
             "frames": ["frames", "images", "camera", "captions", "mlfeat"],
             "nadir": ["nadir", "images", "camera", "captions"],
@@ -195,7 +195,7 @@ class NASAAPIClient:
         return "|".join(return_list)
 
     def get_nocturno_queries(self, coord_source: str) -> List[Dict]:
-        """Obtener consultas para modo nocturno"""
+        """Get consultas para mode nocturno"""
         if coord_source in ["frames", "nadir"]:
             return [
                 {
@@ -216,8 +216,8 @@ class NASAAPIClient:
                 {"operator1": None, "value1": None, "operator2": None, "value2": None}
             ]
 
-    async def procesar_consulta(self, api_url: str, source: str) -> List[Dict]:
-        """Procesar una consulta individual a la API"""
+    async def process_consulta(self, api_url: str, source: str) -> List[Dict]:
+        """Process una consulta individual a la API"""
         try:
             log_custom(
                 section="Consulta API NASA",
@@ -234,13 +234,13 @@ class NASAAPIClient:
             if not isinstance(raw_data, list):
                 log_custom(
                     section="Consulta API NASA",
-                    message=f"No se encontraron resultados para fuente: {source}",
+                    message=f"No se encontraron results para fuente: {source}",
                     level="WARNING",
                     file=LOG_FILE,
                 )
                 return []
 
-            # Procesar resultados y filtrar por alta resolución
+            # Procesar results y filtrar por alta resolución
             processed_results = []
             for photo in raw_data:
                 # Normalizar keys (reemplazar | por .)
@@ -267,7 +267,7 @@ class NASAAPIClient:
 
             log_custom(
                 section="Consulta API NASA",
-                message=f"Fuente {source}: {len(processed_results)} resultados de alta resolución de {len(raw_data)} totales",
+                message=f"Fuente {source}: {len(processed_results)} results de alta resolución de {len(raw_data)} totales",
                 level="INFO",
                 file=LOG_FILE,
             )
@@ -277,14 +277,14 @@ class NASAAPIClient:
         except Exception as e:
             log_custom(
                 section="Error Consulta API",
-                message=f"Error en consulta {source}: {str(e)}",
+                message=f"Error in consulta {source}: {str(e)}",
                 level="ERROR",
                 file=LOG_FILE,
             )
             return []
 
     def verificar_nasa_ids_en_bd(self, nasa_ids: List[str]) -> set:
-        """Verificar qué NASA_IDs ya existen en la base de datos"""
+        """Verify qué NASA_IDs ya existen en la base de datos"""
         try:
             with sqlite3.connect(DATABASE_PATH) as conn:
                 cursor = conn.cursor()
@@ -302,8 +302,8 @@ class NASAAPIClient:
             )
             return set()
 
-    def extraer_nasa_ids_de_resultados(self, results: List[Dict]) -> List[str]:
-        """Extraer NASA_IDs de los resultados"""
+    def extraer_nasa_ids_de_results(self, results: List[Dict]) -> List[str]:
+        """Extraer NASA_IDs de los results"""
         nasa_ids = []
         for result in results:
             filename = result.get("images.filename")
@@ -316,7 +316,7 @@ class NASAAPIClient:
     def filtrar_solo_nuevos(
         self, results: List[Dict], nasa_ids_existentes: set
     ) -> List[Dict]:
-        """Filtrar solo resultados que NO están en BD"""
+        """Filtrar solo results que NO están en BD"""
         nuevos = []
         for result in results:
             filename = result.get("images.filename")
@@ -326,23 +326,23 @@ class NASAAPIClient:
                     nuevos.append(result)
         return nuevos
 
-    def deduplicar_resultados(self, resultados: List[Dict]) -> List[Dict]:
-        """Deduplicar resultados por NASA_ID"""
+    def deduplicar_results(self, results: List[Dict]) -> List[Dict]:
+        """Deduplicar results por NASA_ID"""
         vistos = set()
         unicos = []
         duplicados = 0
 
-        for resultado in resultados:
-            filename = resultado.get("images.filename")
+        for result in results:
+            filename = result.get("images.filename")
             nasa_id = filename.split(".")[0] if filename else None
 
             if not nasa_id or nasa_id == "Sin_ID":
-                unicos.append(resultado)
+                unicos.append(result)
                 continue
 
             if nasa_id not in vistos:
                 vistos.add(nasa_id)
-                unicos.append(resultado)
+                unicos.append(result)
             else:
                 duplicados += 1
 
@@ -356,15 +356,15 @@ class NASAAPIClient:
         return unicos
 
     async def fetch_data_inteligente(
-        self, filtros_adicionales: List[Dict] = None, limite_imagenes: int = 0
+        self, filtros_adicionales: List[Dict] = None, limit_imagees: int = 0
     ) -> Tuple[List[Dict], List[Dict]]:
         """
         Función principal que replica fetchData() de JavaScript
-        Retorna: (todos_los_resultados, solo_resultados_nuevos)
+        Retorna: (todos_los_results, solo_results_nuevos)
         """
         log_custom(
             section="Fetch Data Inteligente",
-            message=f"Iniciando consultas inteligentes - Modo nocturno: {self.modo_nocturno}",
+            message=f"Iniciando consultas inteligentes - Modo nocturno: {self.mode_nocturno}",
             level="INFO",
             file=LOG_FILE,
         )
@@ -380,7 +380,7 @@ class NASAAPIClient:
         for source in self.coord_sources:
             consultas = []
 
-            if self.modo_nocturno:
+            if self.mode_nocturno:
                 consultas = self.get_nocturno_queries(source)
             else:
                 consultas = [
@@ -439,58 +439,58 @@ class NASAAPIClient:
                 )
 
                 # Ejecutar consulta
-                resultados = await self.procesar_consulta(api_url, source)
-                all_results.extend(resultados)
+                results = await self.process_consulta(api_url, source)
+                all_results.extend(results)
 
-        # Deduplicar todos los resultados
-        resultados_unicos = self.deduplicar_resultados(all_results)
+        # Deduplicar todos los results
+        results_unicos = self.deduplicar_results(all_results)
 
         log_custom(
             section="Fetch Data Inteligente",
-            message=f"Total resultados únicos obtenidos: {len(resultados_unicos)}",
+            message=f"Total results únicos obtenidos: {len(results_unicos)}",
             level="INFO",
             file=LOG_FILE,
         )
 
         # Verificar cuáles son nuevos (no están en BD)
-        if resultados_unicos:
-            todos_nasa_ids = self.extraer_nasa_ids_de_resultados(resultados_unicos)
+        if results_unicos:
+            todos_nasa_ids = self.extraer_nasa_ids_de_results(results_unicos)
             nasa_ids_existentes = self.verificar_nasa_ids_en_bd(todos_nasa_ids)
-            resultados_nuevos = self.filtrar_solo_nuevos(
-                resultados_unicos, nasa_ids_existentes
+            results_nuevos = self.filtrar_solo_nuevos(
+                results_unicos, nasa_ids_existentes
             )
 
-            # Aplicar límite si está definido
-            if limite_imagenes > 0 and len(resultados_nuevos) > limite_imagenes:
-                resultados_nuevos = resultados_nuevos[:limite_imagenes]
+            # Aplicar limit si está definido
+            if limit_imagees > 0 and len(results_nuevos) > limit_imagees:
+                results_nuevos = results_nuevos[:limit_imagees]
                 log_custom(
                     section="Límite Aplicado",
-                    message=f"Aplicando límite: {limite_imagenes} de {len(resultados_nuevos)} imágenes nuevas",
+                    message=f"Aplicando limit: {limit_imagees} de {len(results_nuevos)} imágenes nuevas",
                     level="INFO",
                     file=LOG_FILE,
                 )
 
             log_custom(
                 section="Verificación BD",
-                message=f"Imágenes nuevas: {len(resultados_nuevos)} de {len(resultados_unicos)} totales",
+                message=f"Imágenes nuevas: {len(results_nuevos)} de {len(results_unicos)} totales",
                 level="INFO",
                 file=LOG_FILE,
             )
 
-            return resultados_unicos, resultados_nuevos
+            return results_unicos, results_nuevos
 
         return [], []
 
-    def convertir_a_formato_metadatos(self, results: List[Dict]) -> List[Dict]:
-        """Convertir resultados de API al formato esperado por extract_metadatos_enriquecido"""
+    def convertir_a_formato_metadata(self, results: List[Dict]) -> List[Dict]:
+        """Convertir results de API al formato esperado por extract_metadata_enriquecido"""
         log_custom(
             section="Conversión Formato",
-            message=f"Convirtiendo {len(results)} resultados al formato de metadatos",
+            message=f"Convirtiendo {len(results)} results al formato de metadata",
             level="INFO",
             file=LOG_FILE,
         )
 
-        # Los resultados ya están en el formato correcto (normalizado)
+        # Los results ya están en el formato correct (normalizado)
         # Solo necesitamos asegurar que tengan los campos necesarios
         return results
 
@@ -500,86 +500,86 @@ class NASAAPIClient:
 # ============================================================================
 
 
-async def obtener_imagenes_nuevas_costa_rica(
-    limite: int = 0, modo_nocturno: bool = True, filtros_extra: List[Dict] = None
+async def obtener_imagees_nuevas_costa_rica(
+    limit: int = 0, mode_nocturno: bool = True, filtros_extra: List[Dict] = None
 ) -> List[Dict]:
     """
     Función de conveniencia para obtener imágenes nuevas de Costa Rica
 
     Args:
-        limite: Límite de imágenes nuevas (0 = sin límite)
-        modo_nocturno: Si usar modo nocturno
+        limit: Límite de imágenes nuevas (0 = sin limit)
+        mode_nocturno: Si usar mode nocturno
         filtros_extra: Filtros adicionales
 
     Returns:
-        Lista de resultados en formato API listos para extract_metadatos_enriquecido
+        Lista de results en formato API listos para extract_metadata_enriquecido
     """
     client = NASAAPIClient(
-        bounding_box=DEFAULT_BOUNDING_BOX, modo_nocturno=modo_nocturno
+        bounding_box=DEFAULT_BOUNDING_BOX, mode_nocturno=mode_nocturno
     )
 
     log_custom(
-        section="Obtener Imágenes Costa Rica",
-        message=f"Iniciando búsqueda inteligente - Límite: {limite if limite > 0 else 'Sin límite'}, Nocturno: {modo_nocturno}",
+        section="Get Imágenes Costa Rica",
+        message=f"Iniciando búsqueda inteligente - Límite: {limit if limit > 0 else 'Sin limit'}, Nocturno: {mode_nocturno}",
         level="INFO",
         file=LOG_FILE,
     )
 
     try:
-        todos_resultados, solo_nuevos = await client.fetch_data_inteligente(
-            filtros_adicionales=filtros_extra, limite_imagenes=limite
+        todos_results, solo_nuevos = await client.fetch_data_inteligente(
+            filtros_adicionales=filtros_extra, limit_imagees=limit
         )
 
         if not solo_nuevos:
             log_custom(
                 section="Sin Resultados Nuevos",
-                message="No se encontraron imágenes nuevas para procesar",
+                message="No se encontraron imágenes nuevas para process",
                 level="WARNING",
                 file=LOG_FILE,
             )
             return []
 
         # Convertir al formato esperado
-        metadatos_formato = client.convertir_a_formato_metadatos(solo_nuevos)
+        metadata_formato = client.convertir_a_formato_metadata(solo_nuevos)
 
         log_custom(
             section="Búsqueda Completada",
-            message=f"Búsqueda inteligente completada: {len(metadatos_formato)} imágenes nuevas listas para procesamiento",
+            message=f"Búsqueda inteligente completed: {len(metadata_formato)} imágenes nuevas listas para processing",
             level="INFO",
             file=LOG_FILE,
         )
 
-        return metadatos_formato
+        return metadata_formato
 
     except Exception as e:
         log_custom(
             section="Error Búsqueda",
-            message=f"Error durante búsqueda inteligente: {str(e)}",
+            message=f"Error during búsqueda inteligente: {str(e)}",
             level="ERROR",
             file=LOG_FILE,
         )
         raise
 
 
-async def obtener_por_tarea_programada(task_data: Dict) -> List[Dict]:
+async def obtener_por_task_scheduled(task_data: Dict) -> List[Dict]:
     """
-    Obtener imágenes basado en configuración de tarea programada
+    Obtener imágenes basado en configuration de task scheduled
 
     Args:
-        task_data: Datos de la tarea con query, return, filtros, etc.
+        task_data: Datos de la task con query, return, filtros, etc.
 
     Returns:
-        Lista de resultados listos para procesamiento
+        Lista de results listos para processing
     """
     log_custom(
-        section="Tarea Programada",
-        message=f"Ejecutando tarea programada: {task_data.get('id', 'unknown')}",
+        section="Scheduled Task",
+        message=f"Ejecutando task scheduled: {task_data.get('id', 'unknown')}",
         level="INFO",
         file=LOG_FILE,
     )
 
     try:
-        # Si la tarea tiene query/return directos (formato API)
+        # Si la task tiene query/return directos (formato API)
         if "query" in task_data and "return" in task_data:
             api_url = f"{API_URL}?query={task_data['query']}&return={task_data['return']}&key={API_KEY}"
 
@@ -590,8 +590,8 @@ async def obtener_por_tarea_programada(task_data: Dict) -> List[Dict]:
             if not isinstance(raw_data, list):
                 return []
 
-            # Normalizar resultados
-            resultados = []
+            # Normalizar results
+            results = []
             for photo in raw_data:
                 normalized = {}
                 for key, value in photo.items():
@@ -600,44 +600,44 @@ async def obtener_por_tarea_programada(task_data: Dict) -> List[Dict]:
                 # Filtrar alta resolución
                 directory = normalized.get("images.directory", "").lower()
                 if "large" in directory or "highres" in directory:
-                    resultados.append(normalized)
+                    results.append(normalized)
 
             # Verificar cuáles son nuevos
             client = NASAAPIClient()
-            nasa_ids = client.extraer_nasa_ids_de_resultados(resultados)
+            nasa_ids = client.extraer_nasa_ids_de_results(results)
             existentes = client.verificar_nasa_ids_en_bd(nasa_ids)
-            solo_nuevos = client.filtrar_solo_nuevos(resultados, existentes)
+            solo_nuevos = client.filtrar_solo_nuevos(results, existentes)
 
             log_custom(
-                section="Tarea Programada",
-                message=f"Tarea completada: {len(solo_nuevos)} imágenes nuevas de {len(resultados)} totales",
+                section="Scheduled Task",
+                message=f"Tarea completed: {len(solo_nuevos)} imágenes nuevas de {len(results)} totales",
                 level="INFO",
                 file=LOG_FILE,
             )
 
             return solo_nuevos
 
-        # Si la tarea tiene configuración avanzada
+        # Si la task tiene configuration avanzada
         else:
             #  USAR CONFIGURACIÓN ESPECÍFICA DE LA TAREA
             bounding_box = task_data.get("boundingBox", DEFAULT_BOUNDING_BOX)
-            modo_nocturno = task_data.get("modoNocturno", True)
+            mode_nocturno = task_data.get("modeNocturno", True)
             filtros = task_data.get("filters", [])
-            limite = task_data.get("limite", 0)
+            limit = task_data.get("limit", 0)
 
             log_custom(
                 section="Tarea Avanzada",
-                message=f"Ejecutando con configuración personalizada - Filtros: {len(filtros)}, Límite: {limite}",
+                message=f"Ejecutando con configuration personalizada - Filtros: {len(filtros)}, Límite: {limit}",
                 level="INFO",
                 file=LOG_FILE,
             )
 
             client = NASAAPIClient(
-                bounding_box=bounding_box, modo_nocturno=modo_nocturno
+                bounding_box=bounding_box, mode_nocturno=mode_nocturno
             )
 
             _, solo_nuevos = await client.fetch_data_inteligente(
-                filtros_adicionales=filtros, limite_imagenes=limite
+                filtros_adicionales=filtros, limit_imagees=limit
             )
 
             return solo_nuevos
@@ -645,7 +645,7 @@ async def obtener_por_tarea_programada(task_data: Dict) -> List[Dict]:
     except Exception as e:
         log_custom(
             section="Error Tarea Programada",
-            message=f"Error ejecutando tarea programada: {str(e)}",
+            message=f"Error ejecutando task scheduled: {str(e)}",
             level="ERROR",
             file=LOG_FILE,
         )
@@ -657,28 +657,28 @@ async def obtener_por_tarea_programada(task_data: Dict) -> List[Dict]:
 
 
 async def test_api_client():
-    """Función de prueba para verificar funcionamiento"""
+    """Función de test para verificar funcionamiento"""
     print(" Probando cliente API NASA...")
 
     try:
-        # Prueba básica con límite pequeño
-        resultados = await obtener_imagenes_nuevas_costa_rica(modo_nocturno=True)
+        # Prueba básica con limit pequeño
+        results = await obtener_imagees_nuevas_costa_rica(mode_nocturno=True)
 
-        print(f" Prueba exitosa: {len(resultados)} resultados obtenidos")
+        print(f" Prueba exitosa: {len(results)} results obtenidos")
 
-        with open("resultados.json", "w") as f:
-            json.dump(resultados, f, indent=4)
+        with open("results.json", "w") as f:
+            json.dump(results, f, indent=4)
 
-        if resultados:
-            print(f" Primer resultado:")
-            primer_resultado = resultados[0]
-            print(f"   - Filename: {primer_resultado.get('images.filename', 'N/A')}")
-            print(f"   - Directory: {primer_resultado.get('images.directory', 'N/A')}")
-            print(f"   - Mission: {primer_resultado.get('frames.mission', 'N/A')}")
-            print(f"   - Date: {primer_resultado.get('frames.pdate', 'N/A')}")
+        if results:
+            print(f" Primer result:")
+            primer_result = results[0]
+            print(f"   - Filename: {primer_result.get('images.filename', 'N/A')}")
+            print(f"   - Directory: {primer_result.get('images.directory', 'N/A')}")
+            print(f"   - Mission: {primer_result.get('frames.mission', 'N/A')}")
+            print(f"   - Date: {primer_result.get('frames.pdate', 'N/A')}")
 
     except Exception as e:
-        print(f" Error en prueba: {str(e)}")
+        print(f" Error in test: {str(e)}")
 
 
 if __name__ == "__main__":

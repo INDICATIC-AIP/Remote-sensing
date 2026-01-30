@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-//  DEPENDENCIAS PRINCIPALES
+//  MAIN DEPENDENCIES
 // ─────────────────────────────────────────────────────────────
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
@@ -14,15 +14,15 @@ let nocturnoWindow;
 let db;
 
 // ─────────────────────────────────────────────────────────────
-//  FUNCIÓN DE LOGGING OPTIMIZADA
+//  OPTIMIZED LOGGING
 // ─────────────────────────────────────────────────────────────
 
 /**
- * Función única para logging - inteligente según parámetros
- * @param {string} messageOrSection - Mensaje o sección
- * @param {string} [messageOrLevel] - Si hay sección: mensaje. Si no hay sección: level
- * @param {string} [levelOrFile] - Si hay sección: level. Si no hay sección: file
- * @param {string} [file] - Archivo (solo si hay sección)
+ * Single logging helper that adapts to provided parameters
+ * @param {string} messageOrSection - Message or section
+ * @param {string} [messageOrLevel] - If section is provided: message. Otherwise: level
+ * @param {string} [levelOrFile] - If section is provided: level. Otherwise: file
+ * @param {string} [file] - Log file (only when section is provided)
  */
 function logCustom(messageOrSection, messageOrLevel, levelOrFile, file) {
     const logScript = path.join(__dirname, 'scripts', 'utils', 'log.py');
@@ -32,15 +32,15 @@ function logCustom(messageOrSection, messageOrLevel, levelOrFile, file) {
     let level = 'INFO';
     let logFile = 'logs/iss/general.log';
 
-    // Detectar si es sección + mensaje o solo mensaje
+    // Detect whether it is section + message or only message
     if (messageOrLevel && !['INFO', 'WARNING', 'ERROR'].includes(messageOrLevel) && !messageOrLevel.includes('.log')) {
-        // Caso: logCustom('Sección', 'Mensaje', 'INFO', 'file.log')
+        // Case: logCustom('Section', 'Message', 'INFO', 'file.log')
         section = messageOrSection;
         finalMessage = messageOrLevel;
         level = levelOrFile || 'INFO';
         logFile = file || 'logs/iss/general.log';
     } else {
-        // Caso: logCustom('Mensaje', 'INFO', 'file.log') o logCustom('Mensaje')
+        // Case: logCustom('Message', 'INFO', 'file.log') or logCustom('Message')
         section = null;
         finalMessage = messageOrSection;
         level = (['INFO', 'WARNING', 'ERROR'].includes(messageOrLevel)) ? messageOrLevel : 'INFO';
@@ -66,7 +66,7 @@ function logCustom(messageOrSection, messageOrLevel, levelOrFile, file) {
 
     child.on('close', (code) => {
         if (code !== 0) {
-            console.error(`[ERROR] Log falló - código: ${code}`);
+            console.error(`[ERROR] Log failed - code: ${code}`);
             if (errorOutput) {
                 console.error(`   Error: ${errorOutput.trim()}`);
             }
@@ -74,12 +74,12 @@ function logCustom(messageOrSection, messageOrLevel, levelOrFile, file) {
     });
 
     child.on('error', (error) => {
-        console.error(`[ERROR] Error ejecutando log_custom: ${error.message}`);
+        console.error(`[ERROR] Error executing log_custom: ${error.message}`);
     });
 }
 
 // ─────────────────────────────────────────────────────────────
-//  FUNCIONES DE VENTANAS
+//  WINDOW FUNCTIONS
 // ─────────────────────────────────────────────────────────────
 
 function createMainWindow() {
@@ -143,36 +143,36 @@ function createNocturno() {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  INICIALIZACIÓN DE BASE DE DATOS
+//  DATABASE INITIALIZATION
 // ─────────────────────────────────────────────────────────────
 
 function initializeDatabase() {
     db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE, (err) => {
         if (err) {
-            logCustom('Error Base de Datos', `Error conectando: ${err.message}`, 'ERROR');
+            logCustom('Database Error', `Connection error: ${err.message}`, 'ERROR');
         } else {
-            logCustom('Conexión a base de datos establecida', 'INFO');
+            logCustom('Database connection established', 'INFO');
         }
     });
 }
 
 // ─────────────────────────────────────────────────────────────
-// HANDLERS IPC
+// IPC HANDLERS
 // ─────────────────────────────────────────────────────────────
 
 function setupIpcHandlers() {
-    // Handler para log_custom desde renderer
+    // Handler for log_custom from renderer
     ipcMain.on('log_custom', (event, args) => {
         const { section, message, level, file } = args;
         logCustom(section, message, level, file);
     });
 
-    // Verificación de NASA ID en base de datos
+    // NASA ID verification in database
     ipcMain.handle('verificar-nasa-id', async (_, nasaId) => {
         return new Promise((resolve) => {
             db.get("SELECT COUNT(*) AS count FROM Image WHERE nasa_id = ?", [String(nasaId)], (err, row) => {
                 if (err) {
-                    logCustom('Error Base de Datos', `Error consultando NASA_ID ${nasaId}: ${err.message}`, 'ERROR');
+                    logCustom('Database Error', `Error querying NASA_ID ${nasaId}: ${err.message}`, 'ERROR');
                     resolve(false);
                 } else {
                     const exists = row && row.count > 0;
@@ -182,27 +182,27 @@ function setupIpcHandlers() {
         });
     });
 
-    // Gestión de tareas programadas
+    // Scheduled task management
     ipcMain.handle("eliminarTareaWindows", async (_, taskName) => {
-        logCustom('Gestión de Tareas', `Eliminando tarea: ${taskName}`);
+        logCustom('Task Management', `Deleting task: ${taskName}`);
 
         const result = spawnSync("/mnt/c/Windows/System32/schtasks.exe", [
             "/Delete", "/TN", taskName, "/F"
         ], { encoding: "utf-8" });
 
         if (result.status === 0 || result.status === 1) {
-            logCustom(`Tarea eliminada correctamente: ${taskName}`);
-            return { message: "Tarea eliminada correctamente." };
+            logCustom(`Task deleted successfully: ${taskName}`);
+            return { message: "Task deleted successfully." };
         } else {
-            logCustom('Error Eliminación', `Error eliminando ${taskName}: ${result.stderr}`, 'ERROR');
-            throw new Error(result.stderr || "Error al eliminar tarea");
+            logCustom('Deletion Error', `Error deleting ${taskName}: ${result.stderr}`, 'ERROR');
+            throw new Error(result.stderr || "Error deleting task");
         }
     });
 
     ipcMain.handle("crearTareaPeriodica", async (_, args) => {
         const { taskId, jsonPath, hora, frecuencia, intervalo } = args;
 
-        logCustom('Creación Tarea NASA', `Creando tarea: ${taskId} - ${frecuencia} a las ${hora}`, 'INFO');
+        logCustom('NASA Task Creation', `Creating task: ${taskId} - ${frecuencia} at ${hora}`, 'INFO');
 
         const command = `cmd.exe /c start /min "" wsl -d Ubuntu-24.04 -- bash /home/jose/API-NASA/map/scripts/launch_periodic.sh ${taskId}`;
         const schedulerArgs = [
@@ -220,18 +220,18 @@ function setupIpcHandlers() {
         const result = spawnSync(schedulerArgs[0], schedulerArgs.slice(1), { encoding: "utf-8" });
 
         if (result.status === 0) {
-            logCustom(`Tarea NASA programada: ${taskId}`, 'INFO');
-            return { message: "Tarea programada con éxito" };
+            logCustom(`NASA task scheduled: ${taskId}`, 'INFO');
+            return { message: "Task scheduled successfully" };
         } else {
-            logCustom('Error Tarea NASA', `Error creando tarea: ${result.stderr}`, 'ERROR');
-            throw new Error(result.stderr || "No se pudo crear la tarea");
+            logCustom('NASA Task Error', `Error creating task: ${result.stderr}`, 'ERROR');
+            throw new Error(result.stderr || "Could not create task");
         }
     });
 
     ipcMain.handle("crearTareaNOAA", async (_, args) => {
         const { taskId, hora, frecuencia, intervalo } = args;
 
-        logCustom('Creación Tarea NOAA', `Creando tarea NOAA: ${taskId} - ${frecuencia} a las ${hora}`, 'INFO');
+        logCustom('NOAA Task Creation', `Creating NOAA task: ${taskId} - ${frecuencia} at ${hora}`, 'INFO');
 
         const command = `cmd.exe /c start /min "" wsl -d Ubuntu-24.04 -- bash /home/jose/API-NASA/map/scripts/launch_noaa.sh ${taskId}`;
         const schedulerArgs = [
@@ -249,21 +249,21 @@ function setupIpcHandlers() {
         const result = spawnSync(schedulerArgs[0], schedulerArgs.slice(1), { encoding: "utf-8" });
 
         if (result.status === 0) {
-            logCustom(`Tarea NOAA programada: ${taskId}`, 'INFO');
-            return { message: "Tarea NOAA programada con éxito" };
+            logCustom(`NOAA task scheduled: ${taskId}`, 'INFO');
+            return { message: "NOAA task scheduled successfully" };
         } else {
-            logCustom('Error Tarea NOAA', `Error creando tarea NOAA: ${result.stderr}`, 'ERROR');
-            throw new Error(result.stderr || "No se pudo crear la tarea NOAA");
+            logCustom('NOAA Task Error', `Error creating NOAA task: ${result.stderr}`, 'ERROR');
+            throw new Error(result.stderr || "Unable to create NOAA task");
         }
     });
 
-    //  HANDLER CORREGIDO: descargarDirecto en main.js
+    // Handler: direct download from main.js
     ipcMain.handle('descargarDirecto', async () => {
         return new Promise((resolve, reject) => {
-            logCustom('Inicio Descarga', 'Iniciando descarga directa desde Electron', 'INFO');
+            logCustom('Download Start', 'Starting direct download from Electron', 'INFO');
 
             const scriptPath = path.join(__dirname, 'scripts', 'backend', 'run_batch_processor.py');
-            const jsonFile = path.join(__dirname, 'scripts', 'metadatos_periodicos.json');
+            const jsonFile = path.join(__dirname, 'scripts', 'periodic_metadata.json');
             const process = spawn('python3', [scriptPath, jsonFile]);
             const mainWindow = BrowserWindow.getAllWindows()[0];
 
@@ -271,44 +271,44 @@ function setupIpcHandlers() {
             let lastProgress = 0;
             let processStarted = false;
 
-            //  TIMEOUT DE SEGURIDAD PARA EVITAR PROCESOS COLGADOS
+            // Safety timeout to avoid hanging processes
             const timeoutId = setTimeout(() => {
-                logCustom('Timeout Descarga', 'Proceso de descarga excedió tiempo límite', 'WARNING');
+                logCustom('Download Timeout', 'Download process exceeded time limit', 'WARNING');
                 process.kill('SIGTERM');
-                reject(new Error('Proceso de descarga excedió tiempo límite (timeout)'));
+                reject(new Error('Download process exceeded time limit (timeout)'));
             }, 3 * 60 * 60 * 1000);
             process.stdout.on('data', (data) => {
                 const lines = data.toString().split('\n');
                 lines.forEach(line => {
                     line = line.trim();
 
-                    //  DETECTAR DIFERENTES TIPOS DE PROGRESO
+                    // Detect different progress types
                     if (line.startsWith('PROGRESS:')) {
                         const progressValue = parseInt(line.replace('PROGRESS:', '').trim(), 10);
 
                         if (mainWindow && !isNaN(progressValue) && progressValue !== lastProgress) {
-                            // Validar rango de progreso
+                            // Validate progress range
                             if (progressValue >= 0 && progressValue <= 100) {
                                 processStarted = true;
 
-                                // Log solo en hitos importantes
+                                // Log only on meaningful milestones
                                 if (progressValue % 10 === 0 || progressValue === 1 || progressValue === 99) {
-                                    logCustom(`Progreso descarga: ${progressValue}%`, 'INFO');
+                                    logCustom(`Download progress: ${progressValue}%`, 'INFO');
                                 }
 
-                                // Enviar progreso a la UI
+                                // Send progress to the UI
                                 mainWindow.webContents.send('progreso-descarga', progressValue);
                                 lastProgress = progressValue;
                             }
                         }
                     }
 
-                    // Detectar errores en stdout
+                    // Detect errors in stdout
                     else if (line.includes('[ERROR]')) {
                         console.error(line);
                         stderrData += line + '\n';
                     }
-                    // Otros mensajes informativos - ya vienen formateados desde Python
+                    // Other informational messages already formatted in Python
                     else if (line.trim()) {
                         console.log(line);
                     }
@@ -318,12 +318,12 @@ function setupIpcHandlers() {
             process.stderr.on('data', (data) => {
                 const error = data.toString();
                 
-                // Solo los mensajes con [ERROR] son errores reales
+                // Only messages with [ERROR] are real errors
                 if (error.includes('[ERROR]')) {
                     stderrData += error;
                     console.error(error.trim());
                 } else if (error.trim()) {
-                    // Otros mensajes en stderr son warnings o info
+                    // Other stderr messages are warnings or info
                     console.log(error.trim());
                 }
             });
@@ -332,32 +332,32 @@ function setupIpcHandlers() {
                 clearTimeout(timeoutId);
 
                 if (code === 0) {
-                    logCustom('Descarga Completada', 'Descarga directa completada exitosamente', 'INFO');
+                    logCustom('Download Complete', 'Direct download finished successfully', 'INFO');
 
-                    // ENVIAR SEÑAL DE COMPLETADO SOLO SI EL PROCESO FUE EXITOSO
+                    // Send completion signal only when the process was successful
                     if (mainWindow) {
                         mainWindow.webContents.send('descarga-completa');
                     }
 
                     resolve({
-                        message: 'Descarga directa finalizada correctamente.',
+                        message: 'Direct download completed successfully.',
                         processStarted: processStarted,
                         lastProgress: lastProgress
                     });
                 } else {
-                    logCustom('Error Descarga', `Descarga falló con código: ${code}`, 'ERROR');
+                    logCustom('Download Error', `Download failed with code: ${code}`, 'ERROR');
 
-                    // DETERMINAR TIPO DE ERROR
-                    let errorMessage = `Fallo en ejecución del script. Código: ${code}`;
+                    // Determine error type
+                    let errorMessage = `Script execution failed. Code: ${code}`;
 
                     if (stderrData.includes('Permission denied')) {
-                        errorMessage = 'Error de permisos. Verifica que tienes acceso a las carpetas necesarias.';
+                        errorMessage = 'Permission error. Verify you have access to the required folders.';
                     } else if (stderrData.includes('No module named')) {
-                        errorMessage = 'Error de dependencias Python. Verifica que estén instaladas todas las librerías.';
+                        errorMessage = 'Python dependency error. Ensure all libraries are installed.';
                     } else if (stderrData.includes('Connection')) {
-                        errorMessage = 'Error de conexión. Verifica tu conexión a internet.';
+                        errorMessage = 'Connection error. Check your internet connection.';
                     } else if (stderrData.trim()) {
-                        errorMessage += `\n\nDetalles: ${stderrData.slice(-300)}`; // Solo últimos 300 chars
+                        errorMessage += `\n\nDetails: ${stderrData.slice(-300)}`; // last 300 chars only
                     }
 
                     reject(new Error(errorMessage));
@@ -366,14 +366,14 @@ function setupIpcHandlers() {
 
             process.on('error', (error) => {
                 clearTimeout(timeoutId);
-                logCustom('Error Proceso', `Error en proceso de descarga: ${error.message}`, 'ERROR');
+                logCustom('Process Error', `Error in download process: ${error.message}`, 'ERROR');
 
-                let userMessage = `Error ejecutando el proceso: ${error.message}`;
+                let userMessage = `Error running process: ${error.message}`;
 
                 if (error.code === 'ENOENT') {
-                    userMessage = 'No se encontró Python3. Verifica que esté instalado y en el PATH.';
+                    userMessage = 'Python3 not found. Verify it is installed and available in PATH.';
                 } else if (error.code === 'EACCES') {
-                    userMessage = 'Error de permisos ejecutando Python3.';
+                    userMessage = 'Permission error running Python3.';
                 }
 
                 reject(new Error(userMessage));
@@ -381,17 +381,17 @@ function setupIpcHandlers() {
         });
     });
 
-    // Handlers NOAA
+    // NOAA handlers
     ipcMain.handle('generate-tiles', () => {
         return new Promise((resolve, reject) => {
-            logCustom('Generación Mosaicos', 'Generando mosaicos NOAA', 'INFO');
+            logCustom('Tile Generation', 'Generating NOAA tiles', 'INFO');
 
             exec('python3 scripts/noaa/noaa_commands.py generate_tiles', (error, stdout, stderr) => {
                 if (error) {
-                    logCustom('Error Mosaicos', `Error generando mosaicos: ${stderr}`, 'ERROR');
+                    logCustom('Tile Error', `Error generating tiles: ${stderr}`, 'ERROR');
                     reject(stderr);
                 } else {
-                    logCustom(`Mosaicos generados exitosamente`, 'INFO');
+                    logCustom('Tiles generated successfully', 'INFO');
                     resolve(stdout);
                 }
             });
@@ -400,7 +400,7 @@ function setupIpcHandlers() {
 
     ipcMain.handle("listar-candidatos-export", async () => {
         return new Promise((resolve, reject) => {
-            logCustom('Listar Candidatos', 'Listando candidatos para exportación', 'INFO');
+            logCustom('List Candidates', 'Listing candidates for export', 'INFO');
 
             const scriptPath = path.join(__dirname, "scripts/noaa/noaa_commands.py");
             const py = spawn("python3", [scriptPath, "listar-candidatos-export"]);
@@ -411,26 +411,26 @@ function setupIpcHandlers() {
             py.stderr.on("data", data => {
                 const message = data.toString();
                 
-                // Solo capturar errores reales
+                // Capture only real errors
                 if (message.includes('[ERROR]')) {
                     err += message;
                 }
-                // Otros mensajes son informativos, ignorar
+                // Other messages are informational; ignore
             });
 
             py.on("close", code => {
                 if (code === 0) {
                     try {
                         const parsed = JSON.parse(out);
-                        logCustom(`Candidatos listados: ${parsed.length || 0} elementos`, 'INFO');
+                        logCustom(`Candidates listed: ${parsed.length || 0} items`, 'INFO');
                         resolve(parsed);
                     } catch (e) {
-                        logCustom('Error JSON', `Error parseando JSON: ${e.message}`, 'ERROR');
-                        reject("Error parseando salida de Python.");
+                        logCustom('JSON Error', `Error parsing JSON: ${e.message}`, 'ERROR');
+                        reject("Error parsing Python output.");
                     }
                 } else {
-                    logCustom('Error Python', `Error ejecutando Python: ${err}`, 'ERROR');
-                    reject("Python falló al listar candidatos.");
+                    logCustom('Python Error', `Error running Python: ${err}`, 'ERROR');
+                    reject("Python failed to list candidates.");
                 }
             });
         });
@@ -438,7 +438,7 @@ function setupIpcHandlers() {
 
     // ipcMain.handle("export-all", async () => {
     //     return new Promise((resolve, reject) => {
-    //         logCustom('Exportación NOAA', 'Iniciando exportación completa NOAA', 'INFO');
+    //         logCustom('NOAA Export', 'Starting full NOAA export', 'INFO');
 
     //         const python = spawn("python3", ["scripts/noaa/noaa_commands.py", "export_all"]);
 
@@ -452,24 +452,24 @@ function setupIpcHandlers() {
     //         python.stderr.on("data", (data) => {
     //             const error = data.toString().trim();
     //             if (error) {
-    //                 logCustom('Error Exportación', `Error exportación NOAA: ${error}`, 'ERROR');
+    //                 logCustom('Export Error', `NOAA export error: ${error}`, 'ERROR');
     //             }
     //         });
 
     //         python.on("close", (code) => {
     //             if (code === 0) {
-    //                 logCustom(`Exportación NOAA completada exitosamente`, 'INFO');
-    //                 resolve("Exportación completada");
+    //                 logCustom('NOAA export completed successfully', 'INFO');
+    //                 resolve("Export completed");
     //             } else {
-    //                 logCustom('Error Exportación', `Exportación NOAA falló con código: ${code}`, 'ERROR');
-    //                 reject(new Error(`Python terminó con código ${code}`));
+    //                 logCustom('Export Error', `NOAA export failed with code: ${code}`, 'ERROR');
+    //                 reject(new Error(`Python ended with code ${code}`));
     //             }
     //         });
     //     });
     // });
     ipcMain.handle("export-all", async () => {
         return new Promise((resolve, reject) => {
-            logCustom('Exportación NOAA', 'Iniciando exportación completa NOAA', 'INFO');
+            logCustom('NOAA Export', 'Starting full NOAA export', 'INFO');
 
             const python = spawn("python3", ["scripts/noaa/noaa_commands.py", "export_all"]);
             let hasError = false;
@@ -482,14 +482,14 @@ function setupIpcHandlers() {
                     line = line.trim();
                     if (!line) return;
 
-                    // CAPTURAR PROGRESO DE GEE
+                    // Capture GEE progress
                     if (line.includes("ProgresoLanzado:") || line.includes("ProgresoReal:")) {
                         if (noaaWindow) {
                             noaaWindow.webContents.send("export-progress", line);
                         }
                     }
 
-                    // CAPTURAR PROGRESO DE RCLONE
+                    // Capture RCLONE progress
                     else if (line.startsWith("PROGRESS:")) {
                         const progressValue = parseInt(line.replace("PROGRESS:", "").trim(), 10);
                         if (!isNaN(progressValue) && noaaWindow) {
@@ -502,19 +502,19 @@ function setupIpcHandlers() {
             python.stderr.on("data", (data) => {
                 const message = data.toString().trim();
                 
-                // Solo los [ERROR] son errores reales
+                // Only [ERROR] messages are real errors
                 if (message.includes('[ERROR]')) {
                     hasError = true;
                     errorBuffer += message + "\n";
                     console.error(message);
                 }
-                // Mensajes de progreso
+                // Progress messages
                 else if (message.includes("ProgresoLanzado:") || message.includes("ProgresoReal:")) {
                     if (noaaWindow) {
                         noaaWindow.webContents.send("export-progress", message);
                     }
                 }
-                // Otros mensajes informativos - ya vienen formateados
+                // Other informational messages already formatted
                 else if (message) {
                     console.log(message);
                 }
@@ -522,28 +522,28 @@ function setupIpcHandlers() {
 
             python.on("close", (code) => {
                 if (code === 0 && !hasError) {
-                    logCustom(`Exportación NOAA completada exitosamente`, 'INFO');
-                    resolve("Exportación completada");
+                    logCustom('NOAA export completed successfully', 'INFO');
+                    resolve("Export completed");
                 } else if (hasError) {
-                    logCustom('Error Exportación NOAA', `Falló: ${errorBuffer}`, 'ERROR');
-                    reject(new Error(`Error en exportación: ${errorBuffer}`));
+                    logCustom('NOAA Export Error', `Failed: ${errorBuffer}`, 'ERROR');
+                    reject(new Error(`Export error: ${errorBuffer}`));
                 } else {
-                    logCustom('Error Exportación NOAA', `Falló con código: ${code}`, 'ERROR');
-                    reject(new Error(`Python terminó con código ${code}`));
+                    logCustom('NOAA Export Error', `Failed with code: ${code}`, 'ERROR');
+                    reject(new Error(`Python ended with code ${code}`));
                 }
             });
         });
     });
     ipcMain.handle('get-metadata', (_, year) => {
         return new Promise((resolve, reject) => {
-            logCustom('Metadatos NOAA', `Obteniendo metadatos para año: ${year}`, 'INFO');
+            logCustom('NOAA Metadata', `Fetching metadata for year: ${year}`, 'INFO');
 
             exec(`python3 scripts/noaa/noaa_commands.py get_metadata ${year}`, (error, stdout, stderr) => {
                 if (error) {
-                    logCustom('Error Metadatos', `Error obteniendo metadatos para ${year}: ${stderr}`, 'ERROR');
+                    logCustom('Metadata Error', `Error fetching metadata for ${year}: ${stderr}`, 'ERROR');
                     reject(stderr);
                 } else {
-                    logCustom(`Metadatos obtenidos para ${year}`, 'INFO');
+                    logCustom(`Metadata fetched for ${year}`, 'INFO');
                     resolve(stdout);
                 }
             });
@@ -551,7 +551,7 @@ function setupIpcHandlers() {
     });
 
     ipcMain.handle('listar-imagenes-drive', async () => {
-        logCustom('Google Drive', 'Listando imágenes desde Google Drive', 'INFO');
+        logCustom('Google Drive', 'Listing images from Google Drive', 'INFO');
 
         const { google } = require('googleapis');
         const { execSync } = require('child_process');
@@ -572,7 +572,7 @@ function setupIpcHandlers() {
             });
 
             const archivos = res.data.files;
-            logCustom(`Encontrados ${archivos.length} archivos en Google Drive`, 'INFO');
+            logCustom(`Found ${archivos.length} files in Google Drive`, 'INFO');
 
             for (const file of archivos) {
                 if (!file.thumbnailLink && file.hasThumbnail) {
@@ -584,7 +584,7 @@ function setupIpcHandlers() {
                         });
                         file.thumbnailLink = fileMetadata.data.thumbnailLink || file.iconLink || null;
                     } catch (err) {
-                        logCustom(`Error obteniendo thumbnail para ${file.name}: ${err.message}`, 'WARNING');
+                        logCustom(`Error fetching thumbnail for ${file.name}: ${err.message}`, 'WARNING');
                     }
                 }
 
@@ -599,7 +599,7 @@ function setupIpcHandlers() {
                         file.metadata = JSON.parse(jsonText);
                         file.year = year;
                     } catch (err) {
-                        logCustom(`Error obteniendo metadatos para ${year}: ${err.message}`, 'WARNING');
+                        logCustom(`Error fetching metadata for ${year}: ${err.message}`, 'WARNING');
                         file.metadata = null;
                         file.year = year;
                     }
@@ -608,13 +608,13 @@ function setupIpcHandlers() {
                 }
             }
 
-            logCustom(`Imágenes de Google Drive listadas exitosamente`, 'INFO');
+            logCustom('Google Drive images listed successfully', 'INFO');
             return archivos;
 
         } catch (err) {
-            logCustom('Error Drive', `Error accediendo a Google Drive: ${err.message}`, 'ERROR');
+            logCustom('Drive Error', `Error accessing Google Drive: ${err.message}`, 'ERROR');
             if (err.code === 401 || err.code === 403) {
-                return { error: 'NO_AUTH', message: 'Necesitas volver a autenticarte o revisar permisos.' };
+                return { error: 'NO_AUTH', message: 'You need to re-authenticate or check permissions.' };
             }
             return { error: 'UNKNOWN', message: err.message };
         }
@@ -622,28 +622,28 @@ function setupIpcHandlers() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// INICIO DE LA APP
+// APP STARTUP
 // ─────────────────────────────────────────────────────────────
 
 app.whenReady().then(() => {
-    logCustom('Inicio de Aplicación', 'Aplicación Electron iniciada');
+    logCustom('App Start', 'Electron application started');
 
-    // Inicializar base de datos y handlers
+    // Initialize database and handlers
     initializeDatabase();
     setupIpcHandlers();
 
-    // Crear ventana según argumentos
+    // Create window based on args
     if (process.argv.includes("--nasa")) {
-        logCustom('Creando ventana periódica NASA');
+        logCustom('Creating NASA periodic window');
         createPeriodicWindow();
     } else if (process.argv.includes("--noaa")) {
-        logCustom('Creando ventana NOAA');
+        logCustom('Creating NOAA window');
         createNOAA();
     } else if (process.argv.includes("--nocturno")) {
-        logCustom('Creando ventana GIRS');
+        logCustom('Creating GIRS window');
         createNocturno();
     } else {
-        logCustom('Creando ventana principal');
+        logCustom('Creating main window');
         createMainWindow();
     }
 });
@@ -667,7 +667,7 @@ ipcMain.on('pid-message', function(event, arg) {
 // });
 
 app.on('window-all-closed', () => {
-    logCustom('App Cerrada', 'Todas las ventanas cerradas', 'INFO');
+    logCustom('App Closed', 'All windows closed', 'INFO');
     if (process.platform !== 'darwin') {
         app.quit();
     }

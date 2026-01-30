@@ -1,0 +1,67 @@
+@startuml Remote_Sensing_System_Architecture
+
+title Remote Sensing System for Light Pollution Analysis - Simplified Architecture
+
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+
+' External Data Sources
+package "External Data Sources" #FFE6CC {
+  component "NASA ISS\nPhotography" as ISS
+  component "Google Earth Engine\n(NOAA VIIRS)" as GEE
+  component "DMSP-OLS\nHistorical Data" as DMSP
+}
+
+' System Core
+package "Data Acquisition Layer" #E8F4F8 {
+  component "Download Manager" as Download
+  component "API Client" as API
+  component "Task Scheduler" as Scheduler
+}
+
+' Processing
+package "Processing Layer" #E8F4F8 {
+  component "Image Processor" as ImageProc
+  component "Metadata Extractor" as MetaExtract
+  component "Geospatial Analyzer" as GeoAnalyzer
+}
+
+' Storage
+package "Storage Layer" #D5E8D4 {
+  database "SQLite Database\n(Metadata)" as DB
+  storage "NAS Storage\n(Images & Files)" as NAS
+}
+
+' User Interface
+package "User Interface" #F8CECC {
+  component "Web Dashboard" as WebUI
+  component "Map Viewer" as MapUI
+  component "Task Monitor" as TaskUI
+  component "File Explorer" as ExplorerUI
+}
+
+' Connections - Data Sources to Acquisition
+ISS --> API : Astronaut photos
+GEE --> API : Satellite imagery
+DMSP --> API : Historical data
+
+' Acquisition to Processing
+API --> Download : Fetch data
+Scheduler --> Download : Automated tasks
+Download --> ImageProc : Raw images
+Download --> MetaExtract : Extract info
+
+' Processing to Storage
+ImageProc --> NAS : Store processed images
+MetaExtract --> DB : Save metadata
+GeoAnalyzer --> DB : Geographic data
+
+' Storage to UI
+DB --> WebUI : Query metadata
+NAS --> MapUI : Display images
+DB --> TaskUI : Task status
+NAS --> ExplorerUI : Browse files
+
+
+
+@enduml

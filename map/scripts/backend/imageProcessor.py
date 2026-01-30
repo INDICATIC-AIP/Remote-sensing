@@ -15,7 +15,7 @@ import threading
 from typing import List, Dict, Optional
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-from rutas import NAS_PATH, NAS_MOUNT
+from map.routes import NAS_PATH, NAS_MOUNT
 
 #  IMPORTAR LOG_CUSTOM
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "utils")))
@@ -25,16 +25,16 @@ from log import log_custom
 LOG_FILE = os.path.join("..", "..", "logs", "iss", "general.log")
 
 
-def verificar_destino_descarga():
+def verificar_destination_descarga():
     """
-     VERIFICAR DESTINO: NAS (producción) o LOCAL (solo pruebas)
+    VERIFICAR DESTINO: NAS (production) o LOCAL (solo tests)
     """
     nas_available = os.path.ismount(NAS_MOUNT) and os.path.exists(NAS_PATH)
-    
+
     if nas_available:
         #  PRODUCCIÓN: Descargar directamente al NAS
         base_path = NAS_PATH
-        modo = "PRODUCCIÓN (NAS)"
+        mode = "PRODUCCIÓN (NAS)"
         log_custom(
             section="Configuración Descarga",
             message=f"NAS disponible - Modo PRODUCCIÓN: {NAS_PATH}",
@@ -42,103 +42,103 @@ def verificar_destino_descarga():
             file=LOG_FILE,
         )
     else:
-        #  DESARROLLO: Descargar local (solo para pruebas)
+        #  DESARROLLO: Descargar local (solo para tests)
         base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "API-NASA"))
-        modo = "DESARROLLO (Local - solo pruebas)"
+        mode = "DESARROLLO (Local - solo tests)"
         log_custom(
             section="Configuración Descarga",
             message=f"NAS no disponible - Modo DESARROLLO local: {base_path} (SOLO PARA PRUEBAS)",
             level="WARNING",
             file=LOG_FILE,
         )
-    
-    return base_path, nas_available, modo
+
+    return base_path, nas_available, mode
 
 
-def determinar_carpeta_destino_inteligente(metadata: Dict, base_path: str) -> str:
+def determinar_folder_destination_inteligente(metadata: Dict, base_path: str) -> str:
     """
-     DETERMINAR CARPETA FINAL: NAS o Local según disponibilidad
+    DETERMINAR CARPETA FINAL: NAS o Local según disponibilidad
     """
     year = _get_year_from_metadata(metadata)
     mission = _get_mission_from_metadata(metadata)
     camera = metadata.get("CAMARA") or "Sin_Camera"
 
     #  ESTRUCTURA: {base_path}/{year}/{mission}/{camera}/
-    carpeta_destino = os.path.join(base_path, str(year), mission, camera)
-    
-    # Crear directorio si no existe
-    os.makedirs(carpeta_destino, exist_ok=True)
-    
-    return carpeta_destino
+    folder_destination = os.path.join(base_path, str(year), mission, camera)
+
+    # Crear directory si no existe
+    os.makedirs(folder_destination, exist_ok=True)
+
+    return folder_destination
 
 
-def descargar_imagenes_aria2c_optimizado(metadatos, conexiones=32):
+def download_imagees_aria2c_optimized(metadata, conexiones=32):
     """
      DESCARGA DIRECTA CON ARIA2C OPTIMIZADO AL DESTINO FINAL
     Sin transferencias posteriores - Descarga directa donde debe estar
     """
-    if not metadatos:
+    if not metadata:
         log_custom(
             section="Descarga Directa",
-            message="No hay metadatos válidos para descargar",
+            message="No hay metadata válidos para download",
             level="WARNING",
             file=LOG_FILE,
         )
         return
 
     #  VERIFICAR DESTINO (NAS o Local)
-    base_path, is_nas, modo = verificar_destino_descarga()
-    
+    base_path, is_nas, mode = verificar_destination_descarga()
+
     log_custom(
-        section="Descarga Directa", 
-        message=f"Iniciando descarga DIRECTA - {modo} - {len(metadatos)} imágenes",
+        section="Descarga Directa",
+        message=f"Iniciando descarga DIRECTA - {mode} - {len(metadata)} imágenes",
         level="INFO",
         file=LOG_FILE,
     )
 
     #  AGRUPAR POR CARPETA DE DESTINO FINAL
-    grupos_por_carpeta = {}
+    grupos_por_folder = {}
     total_urls_nuevas = 0
 
-    for metadata in metadatos:
+    for metadata in metadata:
         url = metadata.get("URL")
         if not url:
             continue
 
-        # Determinar carpeta final directamente
-        carpeta_destino = determinar_carpeta_destino_inteligente(metadata, base_path)
+        # Determinar folder final directamente
+        folder_destination = determinar_folder_destination_inteligente(metadata, base_path)
 
-        if carpeta_destino not in grupos_por_carpeta:
-            grupos_por_carpeta[carpeta_destino] = []
+        if folder_destination not in grupos_por_folder:
+            grupos_por_folder[folder_destination] = []
 
         # Normalizar filename: eliminar query string y manejar GeoTIFFs
-        url_path = url.split('?', 1)[0]
+        url_path = url.split("?", 1)[0]
         raw_basename = os.path.basename(url_path)
         name, ext = os.path.splitext(raw_basename)
 
         # Si la URL apunta a GetGeotiff.pl o no tiene extensión clara, usar NASA_ID.tif cuando sea posible
-        nasa_id = metadata.get('NASA_ID') or metadata.get('NASA_ID'.upper()) or None
-        is_geotiff_url = 'geotiff' in url.lower() or 'getgeotiff.pl' in url.lower()
+        nasa_id = metadata.get("NASA_ID") or metadata.get("NASA_ID".upper()) or None
+        is_geotiff_url = "geotiff" in url.lower() or "getgeotiff.pl" in url.lower()
 
         if is_geotiff_url and nasa_id:
             filename = f"{nasa_id}.tif"
         else:
             # Si no hay extensión, intentar añadir .jpg por defecto
-            if ext == '':
-                filename = raw_basename + '.jpg'
+            if ext == "":
+                filename = raw_basename + ".jpg"
             else:
                 filename = raw_basename
 
-        filepath = os.path.join(carpeta_destino, filename)
+        filepath = os.path.join(folder_destination, filename)
 
-        # Solo descargar si no existe
+        # Solo download si no existe
         if not os.path.exists(filepath):
-            grupos_por_carpeta[carpeta_destino].append(url)
+            grupos_por_folder[folder_destination].append(url)
             total_urls_nuevas += 1
 
     log_custom(
         section="Descarga Directa",
-        message=f"Archivos nuevos: {total_urls_nuevas} en {len(grupos_por_carpeta)} carpetas - Destino: {modo}",
+        message=f"Archivos nuevos: {total_urls_nuevas} en {len(grupos_por_folder)} folders - Destino: {mode}",
         level="INFO",
         file=LOG_FILE,
     )
@@ -146,30 +146,30 @@ def descargar_imagenes_aria2c_optimizado(metadatos, conexiones=32):
     if total_urls_nuevas == 0:
         log_custom(
             section="Descarga Directa",
-            message="Todos los archivos ya existen en el destino",
+            message="Todos los files ya existen en el destination",
             level="INFO",
             file=LOG_FILE,
         )
         return
 
     #  DESCARGA OPTIMIZADA CON ARIA2C
-    total_descargadas = 0
+    total_downloaded = 0
     urls_procesadas = 0
     start_time = time.time()
 
-    for carpeta_destino, urls in grupos_por_carpeta.items():
+    for folder_destination, urls in grupos_por_folder.items():
         if not urls:
             continue
 
         log_custom(
             section="Descarga Directa",
-            message=f"Descargando {len(urls)} imágenes a: {carpeta_destino}",
+            message=f"Descargando {len(urls)} imágenes a: {folder_destination}",
             level="INFO",
             file=LOG_FILE,
         )
 
-        # Crear archivo temporal de URLs
-        temp_file = os.path.join(carpeta_destino, f"urls_batch_{int(time.time())}.txt")
+        # Crear file temporal de URLs
+        temp_file = os.path.join(folder_destination, f"urls_batch_{int(time.time())}.txt")
 
         with open(temp_file, "w") as f:
             for url in urls:
@@ -178,12 +178,15 @@ def descargar_imagenes_aria2c_optimizado(metadatos, conexiones=32):
         #  ARIA2C OPTIMIZADO PARA NAS/LOCAL
         command = [
             "aria2c",
-            "-i", temp_file,
-            "-d", carpeta_destino,  #  DESCARGA DIRECTA AL DESTINO FINAL
-            "-j", str(conexiones),  # Más conexiones para NAS
+            "-i",
+            temp_file,
+            "-d",
+            folder_destination,  #  DESCARGA DIRECTA AL DESTINO FINAL
+            "-j",
+            str(conexiones),  # Más conexiones para NAS
             "--max-connection-per-server=16",
             "--min-split-size=1M",  # Chunks más pequeños para mejor paralelización
-            "--split=32",  # Más splits por archivo
+            "--split=32",  # Más splits por file
             "--summary-interval=1",  # Progreso cada segundo
             "--continue=true",
             "--timeout=45",
@@ -197,15 +200,19 @@ def descargar_imagenes_aria2c_optimizado(metadatos, conexiones=32):
 
         #  CONFIGURACIÓN ESPECÍFICA PARA NAS
         if is_nas:
-            command.extend([
-                "--file-allocation=falloc",  # Mejor para NAS
-                "--disk-cache=64M",  # Cache para NAS
-            ])
+            command.extend(
+                [
+                    "--file-allocation=failurec",  # Mejor para NAS
+                    "--disk-cache=64M",  # Cache para NAS
+                ]
+            )
         else:
-            command.extend([
-                "--file-allocation=none",  # Más rápido para local
-                "--disk-cache=32M",
-            ])
+            command.extend(
+                [
+                    "--file-allocation=none",  # Más rápido para local
+                    "--disk-cache=32M",
+                ]
+            )
 
         try:
             process = subprocess.Popen(
@@ -216,7 +223,7 @@ def descargar_imagenes_aria2c_optimizado(metadatos, conexiones=32):
                 universal_newlines=True,
             )
 
-            carpeta_descargadas = 0
+            folder_downloaded = 0
             last_logged_progress = 0
 
             for line in iter(process.stdout.readline, ""):
@@ -226,8 +233,8 @@ def descargar_imagenes_aria2c_optimizado(metadatos, conexiones=32):
 
                 #  DETECTAR DESCARGAS COMPLETADAS
                 if "Download complete:" in line or ("[#" in line and "100%" in line):
-                    carpeta_descargadas += 1
-                    total_descargadas += 1
+                    folder_downloaded += 1
+                    total_downloaded += 1
                     urls_procesadas += 1
 
                     #  CALCULAR Y ENVIAR PROGRESO REAL
@@ -235,18 +242,22 @@ def descargar_imagenes_aria2c_optimizado(metadatos, conexiones=32):
                         progress = int((urls_procesadas / total_urls_nuevas) * 100)
                         print(f"PROGRESS: {progress}", flush=True)
 
-                        # Log progreso cada 20% o al completar carpeta
-                        if (progress - last_logged_progress >= 20) or (carpeta_descargadas == len(urls)):
+                        # Log progreso cada 20% o al complete folder
+                        if (progress - last_logged_progress >= 20) or (
+                            folder_downloaded == len(urls)
+                        ):
                             log_custom(
                                 section="Descarga Directa",
-                                message=f"Progreso: {progress}% ({total_descargadas}/{total_urls_nuevas}) - Carpeta: {carpeta_descargadas}/{len(urls)}",
+                                message=f"Progreso: {progress}% ({total_downloaded}/{total_urls_nuevas}) - Carpeta: {folder_downloaded}/{len(urls)}",
                                 level="INFO",
                                 file=LOG_FILE,
                             )
                             last_logged_progress = progress
 
                 #  DETECTAR ERRORES CRÍTICOS
-                elif "ERROR" in line and not any(ignorable in line for ignorable in ["SSL", "certificate", "retry"]):
+                elif "ERROR" in line and not any(
+                    ignorable in line for ignorable in ["SSL", "certificate", "retry"]
+                ):
                     log_custom(
                         section="Descarga Directa",
                         message=f"Error aria2c: {line}",
@@ -255,7 +266,7 @@ def descargar_imagenes_aria2c_optimizado(metadatos, conexiones=32):
                     )
 
                 #  VELOCIDAD (log ocasional)
-                elif "DL:" in line and "MB/s" in line and carpeta_descargadas % 50 == 0:
+                elif "DL:" in line and "MB/s" in line and folder_downloaded % 50 == 0:
                     log_custom(
                         section="Descarga Directa",
                         message=f"Velocidad: {line}",
@@ -266,21 +277,21 @@ def descargar_imagenes_aria2c_optimizado(metadatos, conexiones=32):
             # Esperar proceso
             process.wait()
 
-            # Limpiar archivo temporal
+            # Limpiar file temporal
             if os.path.exists(temp_file):
                 os.remove(temp_file)
 
             if process.returncode == 0:
                 log_custom(
                     section="Descarga Directa",
-                    message=f"Carpeta completada exitosamente: {len(urls)} imágenes en {carpeta_destino}",
+                    message=f"Carpeta completed exitosamente: {len(urls)} imágenes en {folder_destination}",
                     level="INFO",
                     file=LOG_FILE,
                 )
             else:
                 log_custom(
                     section="Descarga Directa",
-                    message=f"Error en carpeta {carpeta_destino} - código: {process.returncode}",
+                    message=f"Error in folder {folder_destination} - código: {process.returncode}",
                     level="ERROR",
                     file=LOG_FILE,
                 )
@@ -299,11 +310,11 @@ def descargar_imagenes_aria2c_optimizado(metadatos, conexiones=32):
 
     #  RESUMEN FINAL
     download_time = time.time() - start_time
-    rate = total_descargadas / download_time if download_time > 0 else 0
+    rate = total_downloaded / download_time if download_time > 0 else 0
 
     log_custom(
         section="Descarga Directa",
-        message=f"DESCARGA COMPLETADA - {modo}: {total_descargadas}/{total_urls_nuevas} imágenes en {download_time:.1f}s ({rate:.1f} img/s)",
+        message=f"DESCARGA COMPLETADA - {mode}: {total_downloaded}/{total_urls_nuevas} imágenes en {download_time:.1f}s ({rate:.1f} img/s)",
         level="INFO",
         file=LOG_FILE,
     )
@@ -313,7 +324,7 @@ def descargar_imagenes_aria2c_optimizado(metadatos, conexiones=32):
 
 
 def _get_year_from_metadata(metadata: Dict) -> int:
-    """Extraer año de metadatos"""
+    """Extraer año de metadata"""
     date_str = metadata.get("FECHA", "")
     try:
         return datetime.strptime(date_str, "%Y.%m.%d").year
@@ -322,7 +333,7 @@ def _get_year_from_metadata(metadata: Dict) -> int:
 
 
 def _get_mission_from_metadata(metadata: Dict) -> str:
-    """Extraer misión de metadatos"""
+    """Extraer misión de metadata"""
     nasa_id = metadata.get("NASA_ID", "")
     try:
         return nasa_id.split("-")[0]
@@ -331,7 +342,7 @@ def _get_mission_from_metadata(metadata: Dict) -> str:
 
 
 class HybridOptimizedProcessor:
-    """Procesador híbrido con descarga directa al destino final"""
+    """Procesador híbrido con descarga directa al destination final"""
 
     def __init__(self, database_path: str, batch_size: int = 75):
         self.database_path = database_path
@@ -366,16 +377,16 @@ class HybridOptimizedProcessor:
             file=LOG_FILE,
         )
 
-    def process_complete_workflow(self, metadatos_list: List[Dict]):
-        """ FLUJO COMPLETO CON DESCARGA DIRECTA"""
+    def process_complete_workflow(self, metadata_list: List[Dict]):
+        """FLUJO COMPLETO CON DESCARGA DIRECTA"""
         total_start = time.time()
-        
-        # Verificar configuración al inicio
-        base_path, is_nas, modo = verificar_destino_descarga()
-        
+
+        # Verificar configuration al inicio
+        base_path, is_nas, mode = verificar_destination_descarga()
+
         log_custom(
             section="Workflow ISS",
-            message=f"Iniciando workflow híbrido - {modo} - {len(metadatos_list)} elementos",
+            message=f"Iniciando workflow híbrido - {mode} - {len(metadata_list)} elementos",
             level="INFO",
             file=LOG_FILE,
         )
@@ -383,18 +394,18 @@ class HybridOptimizedProcessor:
         #  FASE 1: DESCARGA DIRECTA AL DESTINO FINAL
         log_custom(
             section="Workflow ISS",
-            message="FASE 1: Descarga directa con aria2c optimizado",
+            message="FASE 1: Descarga directa con aria2c optimized",
             level="INFO",
             file=LOG_FILE,
         )
-        
+
         download_start = time.time()
-        descargar_imagenes_aria2c_optimizado(metadatos_list, conexiones=32)
+        download_imagees_aria2c_optimized(metadata_list, conexiones=32)
         download_time = time.time() - download_start
-        
+
         log_custom(
             section="Workflow ISS",
-            message=f"FASE 1 completada en {download_time:.2f}s - Descarga directa a {modo}",
+            message=f"FASE 1 completed en {download_time:.2f}s - Descarga directa a {mode}",
             level="INFO",
             file=LOG_FILE,
         )
@@ -406,14 +417,16 @@ class HybridOptimizedProcessor:
             level="INFO",
             file=LOG_FILE,
         )
-        
+
         prep_start = time.time()
-        prepared_data = self._prepare_data_from_organized_files(metadatos_list, base_path)
+        prepared_data = self._prepare_data_from_organized_files(
+            metadata_list, base_path
+        )
         prep_time = time.time() - prep_start
-        
+
         log_custom(
             section="Workflow ISS",
-            message=f"FASE 2 completada en {prep_time:.2f}s - {len(prepared_data)} registros preparados",
+            message=f"FASE 2 completed en {prep_time:.2f}s - {len(prepared_data)} registros prepareds",
             level="INFO",
             file=LOG_FILE,
         )
@@ -425,30 +438,33 @@ class HybridOptimizedProcessor:
             level="INFO",
             file=LOG_FILE,
         )
-        
+
         db_start = time.time()
         self._write_to_database_optimized(prepared_data)
         db_time = time.time() - db_start
-        
+
         log_custom(
             section="Workflow ISS",
-            message=f"FASE 3 completada en {db_time:.2f}s",
+            message=f"FASE 3 completed en {db_time:.2f}s",
             level="INFO",
             file=LOG_FILE,
         )
 
-        #  RESUMEN FINAL (sin fase de transferencia - ya está en destino)
+        #  RESUMEN FINAL (sin fase de transferencia - ya está en destination)
         total_time = time.time() - total_start
 
         log_custom(
             section="Workflow ISS",
-            message=f"WORKFLOW COMPLETADO - {modo} - Total: {total_time:.1f}s | Descarga: {download_time:.1f}s | Preparación: {prep_time:.1f}s | DB: {db_time:.1f}s",
+            message=f"WORKFLOW COMPLETADO - {mode} - Total: {total_time:.1f}s | Descarga: {download_time:.1f}s | Preparación: {prep_time:.1f}s | DB: {db_time:.1f}s",
             level="INFO",
             file=LOG_FILE,
         )
 
-    def _prepare_data_from_organized_files(self, metadatos_list: List[Dict], base_path: str) -> List[Dict]:
-        """ PREPARAR DATOS CON RUTA CORRECTA SEGÚN DESTINO"""
+    def _prepare_data_from_organized_files(
+        self, metadata_list: List[Dict], base_path: str
+    ) -> List[Dict]:
+        """PREPARAR DATOS CON RUTA CORRECTA SEGÚN DESTINO"""
+
         def process_single_metadata(metadata):
             nasa_id = metadata.get("NASA_ID")
             if not nasa_id:
@@ -468,7 +484,7 @@ class HybridOptimizedProcessor:
                 "center_lat": self._to_float(metadata.get("CENTER_LAT")),
                 "center_lon": self._to_float(metadata.get("CENTER_LON")),
                 "nadir_center": metadata.get("NADIR_CENTER"),
-                "altitude": self._to_float(metadata.get("ALTITUD")),
+                "altitudee": self._to_float(metadata.get("ALTITUD")),
                 "camera": metadata.get("CAMARA"),
                 "focal_length": self._to_float(metadata.get("LONGITUD_FOCAL")),
                 "tilt": metadata.get("INCLINACION"),
@@ -483,13 +499,13 @@ class HybridOptimizedProcessor:
             return parsed_data
 
         with ThreadPoolExecutor(max_workers=16) as executor:
-            results = list(executor.map(process_single_metadata, metadatos_list))
+            results = list(executor.map(process_single_metadata, metadata_list))
 
         prepared_data = [r for r in results if r is not None]
 
         log_custom(
             section="Preparación Datos",
-            message=f"Preparados {len(prepared_data)}/{len(metadatos_list)} elementos",
+            message=f"Preparados {len(prepared_data)}/{len(metadata_list)} elementos",
             level="INFO",
             file=LOG_FILE,
         )
@@ -497,7 +513,7 @@ class HybridOptimizedProcessor:
         return prepared_data
 
     def _find_organized_file_path(self, metadata: Dict, base_path: str) -> str:
-        """Buscar archivo en la estructura organizada (NAS o Local)"""
+        """Buscar file en la estructura organizada (NAS o Local)"""
         url = metadata.get("URL")
         if not url:
             return None
@@ -513,7 +529,7 @@ class HybridOptimizedProcessor:
         return final_path if os.path.exists(final_path) else None
 
     def _write_to_database_optimized(self, prepared_data: List[Dict]):
-        """ ESCRITURA SQLITE CON LOGS COHERENTES"""
+        """ESCRITURA SQLITE CON LOGS COHERENTES"""
         sys.path.append(
             os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
         )
@@ -593,7 +609,7 @@ class HybridOptimizedProcessor:
                                 center_lat=item["center_lat"],
                                 center_lon=item["center_lon"],
                                 nadir_center=item["nadir_center"],
-                                altitude=item["altitude"],
+                                altitudee=item["altitudee"],
                             )
 
                             crud.create_camera_information(
@@ -627,7 +643,7 @@ class HybridOptimizedProcessor:
                 except Exception as e:
                     log_custom(
                         section="Base de Datos",
-                        message=f"Error en lote {batch_num}: {str(e)}",
+                        message=f"Error in lote {batch_num}: {str(e)}",
                         level="ERROR",
                         file=LOG_FILE,
                     )
@@ -650,7 +666,7 @@ class HybridOptimizedProcessor:
 
         log_custom(
             section="Base de Datos",
-            message=f"Escritura completada: {written} nuevos, {skipped} duplicados",
+            message=f"Escritura completed: {written} nuevos, {skipped} duplicados",
             level="INFO",
             file=LOG_FILE,
         )
@@ -670,6 +686,7 @@ class HybridOptimizedProcessor:
     def _parse_time(self, value):
         try:
             from datetime import datetime
+
             return datetime.strptime(value.replace(" GMT", ""), "%H:%M:%S").time()
         except Exception:
             return None
@@ -679,14 +696,15 @@ class HybridOptimizedProcessor:
 # FUNCIÓN PRINCIPAL OPTIMIZADA
 # ==========================================
 
+
 def main_hibrido_directo_nas(json_filename):
-    """ FUNCIÓN PRINCIPAL CON DESCARGA DIRECTA AL DESTINO FINAL"""
+    """FUNCIÓN PRINCIPAL CON DESCARGA DIRECTA AL DESTINO FINAL"""
     import json
 
     if not os.path.exists(json_filename):
         log_custom(
             section="Error Archivo",
-            message=f"No se encontró el archivo JSON: {json_filename}",
+            message=f"No se encontró el file JSON: {json_filename}",
             level="ERROR",
             file=LOG_FILE,
         )
@@ -694,18 +712,18 @@ def main_hibrido_directo_nas(json_filename):
 
     log_custom(
         section="Inicio Procesamiento",
-        message=f"Iniciando procesamiento desde: {json_filename}",
+        message=f"Iniciando processing desde: {json_filename}",
         level="INFO",
         file=LOG_FILE,
     )
 
-    # Verificar destino al inicio
-    base_path, is_nas, modo = verificar_destino_descarga()
+    # Verificar destination al inicio
+    base_path, is_nas, mode = verificar_destination_descarga()
 
-    # Cargar metadatos
+    # Cargar metadata
     try:
         with open(json_filename, "r", encoding="utf-8") as f:
-            metadatos = json.load(f)
+            metadata = json.load(f)
     except json.JSONDecodeError as e:
         log_custom(
             section="Error JSON",
@@ -717,7 +735,7 @@ def main_hibrido_directo_nas(json_filename):
     except Exception as e:
         log_custom(
             section="Error Lectura",
-            message=f"Error al leer archivo: {str(e)}",
+            message=f"Error al leer file: {str(e)}",
             level="ERROR",
             file=LOG_FILE,
         )
@@ -725,22 +743,22 @@ def main_hibrido_directo_nas(json_filename):
 
     log_custom(
         section="Validación",
-        message=f"Cargados {len(metadatos)} registros para procesamiento",
+        message=f"Cargados {len(metadata)} registros para processing",
         level="INFO",
         file=LOG_FILE,
     )
 
-    if not metadatos:
+    if not metadata:
         log_custom(
             section="Error Datos",
-            message="El archivo JSON está vacío",
+            message="El file JSON está vacío",
             level="ERROR",
             file=LOG_FILE,
         )
         return
 
     # Verificar estructura
-    sample_metadata = metadatos[0] if metadatos else {}
+    sample_metadata = metadata[0] if metadata else {}
     expected_fields = ["NASA_ID", "URL", "FECHA", "HORA"]
     missing_fields = [
         field for field in expected_fields if field not in sample_metadata
@@ -762,23 +780,24 @@ def main_hibrido_directo_nas(json_filename):
             batch_size=75,
         )
 
-        processor.process_complete_workflow(metadatos)
+        processor.process_complete_workflow(metadata)
 
         log_custom(
             section="Procesamiento Completado",
-            message=f"Procesamiento completado exitosamente - {modo}",
+            message=f"Procesamiento completed exitosamente - {mode}",
             level="INFO",
             file=LOG_FILE,
         )
 
     except Exception as e:
         log_custom(
-            section="Error Procesamiento",
-            message=f"Error durante el procesamiento: {str(e)}",
+            section="Processing Error",
+            message=f"Error during el processing: {str(e)}",
             level="ERROR",
             file=LOG_FILE,
         )
         import traceback
+
         log_custom(
             section="Error Traceback",
             message=f"Traceback: {traceback.format_exc()}",
@@ -794,7 +813,7 @@ if __name__ == "__main__":
     else:
         log_custom(
             section="Información de Uso",
-            message="Uso: python imageProcessor.py metadatos_periodicos.json",
+            message="Usage: python imageProcessor.py periodic_metadata.json",
             level="INFO",
             file=LOG_FILE,
         )

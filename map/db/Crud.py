@@ -12,58 +12,58 @@ import os
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-from rutas import DB_URL
+from map.routes import DB_URL
 
 
 class MetadataCRUD:
     """
-    Clase para realizar operaciones CRUD sobre los metadatos de imágenes almacenados en la base de datos.
+    CRUD helper for image metadata stored in the database.
 
-    Métodos:
-        get_paginated_metadatos(offset, limit): Obtiene registros paginados de la vista Metadatos.
-        get_camera_name(image_id): Obtiene el nombre de la cámara para una imagen dada por su ID.
-        get_image_id_by_nasa_id(nasa_id): Recupera el ID de una imagen a partir del ID de la NASA.
-        create_image(...): Crea un nuevo registro de imagen.
-        update_image_path(nasa_id, path): Actualiza la ruta del archivo para una imagen existente.
-        delete_image(nasa_id): Elimina una imagen y su archivo asociado, si existe.
-        create_image_details(...): Crea un registro de detalles asociados a una imagen.
-        create_map_location(...): Crea un registro de localización geográfica para una imagen.
-        create_camera_information(...): Crea un registro de información de cámara para una imagen.
-        close_session(): Cierra la sesión activa de base de datos.
+    Methods:
+        get_paginated_metadata(offset, limit): Return paginated records from the Metadatos view.
+        get_camera_name(image_id): Get the camera name for an image by its ID.
+        get_image_id_by_nasa_id(nasa_id): Retrieve the internal image ID by NASA ID.
+        create_image(...): Create a new image record.
+        update_image_path(nasa_id, path): Update the file path for an existing image.
+        delete_image(nasa_id): Delete an image and its file if it exists.
+        create_image_details(...): Create a details record associated with an image.
+        create_map_location(...): Create a geographic location record for an image.
+        create_camera_information(...): Create a camera information record for an image.
+        close_session(): Close the active database session.
     """
 
     def __init__(self, db_url=DB_URL):
         """
-        Inicializa la conexión con la base de datos y crea una sesión.
+        Initialize the database connection and create a session.
 
         Args:
-            db_url (str): URL de conexión a la base de datos.
+            db_url (str): Database connection URL.
         """
         self.engine = create_engine(db_url)
         Base.metadata.create_all(self.engine)
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
 
-    def get_paginated_metadatos(self, offset=0, limit=100):
+    def get_paginated_metadata(self, offset=0, limit=100):
         """
-        Obtiene un subconjunto de registros de la vista Metadatos con paginación.
+        Retrieve a subset of Metadatos records with pagination.
 
         Args:
-            offset (int): Número de registros a omitir.
-            limit (int): Número máximo de registros a devolver.
+            offset (int): Number of records to skip.
+            limit (int): Maximum number of records to return.
 
         Returns:
-            list[tuple]: Lista de tuplas con los metadatos por imagen.
+            list[tuple]: Tuples containing metadata per image.
         """
         try:
             rows = (
                 self.session.query(Metadatos)
                 .order_by(
                     case(
-                        (Metadatos.fecha.is_(None), 1),  # Si fecha es NULL → 1
+                        (Metadatos.date.is_(None), 1),  # Si date es NULL → 1
                         else_=0,  # Si no → 0
                     ).asc(),  # Primero los no-nulos (0), luego los NULLs (1)
-                    Metadatos.fecha.asc(),  # Luego ordena por la fecha real
+                    Metadatos.date.asc(),  # Luego ordena por la date real
                 )
                 .offset(offset)
                 .limit(limit)
@@ -72,91 +72,91 @@ class MetadataCRUD:
             return [
                 (
                     row.id,
-                    row.imagen,
+                    row.image,
                     row.nasa_id,
-                    row.fecha,
-                    row.hora,
-                    row.resolucion,
+                    row.date,
+                    row.time,
+                    row.resolution,
                     row.nadir_lat,
                     row.nadir_lon,
                     row.center_lat,
                     row.center_lon,
                     row.nadir_center,
-                    row.altitud,
-                    row.lugar,
+                    row.altitude,
+                    row.place,
                     row.elevacion_sol,
                     row.azimut_sol,
                     row.cobertura_nubosa,
-                    row.camara,
-                    row.longitud_focal,
+                    row.camera,
+                    row.longitude_focal,
                     row.inclinacion,
                     row.formato,
-                    row.camara_metadatos,
+                    row.camera_metadata,
                 )
                 for row in rows
             ]
         except Exception as e:
-            print(f"Error al obtener metadatos: {e}")
+            print(f"Error retrieving metadata: {e}")
             return []
 
-    def get_all_metadatos(self):
+    def get_all_metadata(self):
         """
-        Obtiene todos los registros de la vista Metadatos sin paginación.
+        Retrieve all records from the Metadatos view (no pagination).
 
         Returns:
-            list[tuple]: Lista de tuplas con todos los metadatos por imagen.
+            list[tuple]: Tuples containing metadata per image.
         """
         try:
             rows = (
                 self.session.query(Metadatos)
                 .order_by(
                     case(
-                        (Metadatos.fecha.is_(None), 1),  # Si fecha es NULL → 1
+                        (Metadatos.date.is_(None), 1),  # Si date es NULL → 1
                         else_=0,  # Si no → 0
                     ).asc(),  # Primero los no-nulos (0), luego los NULLs (1)
-                    Metadatos.fecha.asc(),  # Luego ordena por la fecha real
+                    Metadatos.date.asc(),  # Luego ordena por la date real
                 )
                 .all()
             )
             return [
                 (
                     row.id,
-                    row.imagen,
+                    row.image,
                     row.nasa_id,
-                    row.fecha,
-                    row.hora,
-                    row.resolucion,
+                    row.date,
+                    row.time,
+                    row.resolution,
                     row.nadir_lat,
                     row.nadir_lon,
                     row.center_lat,
                     row.center_lon,
                     row.nadir_center,
-                    row.altitud,
-                    row.lugar,
+                    row.altitude,
+                    row.place,
                     row.elevacion_sol,
                     row.azimut_sol,
                     row.cobertura_nubosa,
-                    row.camara,
-                    row.longitud_focal,
+                    row.camera,
+                    row.longitude_focal,
                     row.inclinacion,
                     row.formato,
-                    row.camara_metadatos,
+                    row.camera_metadata,
                 )
                 for row in rows
             ]
         except Exception as e:
-            print(f"Error al obtener todos los metadatos: {e}")
+            print(f"Error retrieving all metadata: {e}")
             return []
 
     def get_camera_name(self, image_id):
         """
-        Obtiene el nombre de la cámara asociada a una imagen.
+        Get the camera name associated with an image.
 
         Args:
-            image_id (int): ID de la imagen.
+            image_id (int): Image ID.
 
         Returns:
-            str or None: Nombre de la cámara o None si no existe.
+            str or None: Camera name or None if it does not exist.
         """
         camera_info = (
             self.session.query(CameraInformation.camera)
@@ -167,65 +167,65 @@ class MetadataCRUD:
 
     def get_image_id_by_nasa_id(self, nasa_id):
         """
-        Obtiene el ID interno de la imagen dado el identificador de la NASA.
+        Get the internal image ID given the NASA identifier.
 
         Args:
-            nasa_id (str): Identificador de la NASA.
+            nasa_id (str): NASA identifier.
 
         Returns:
-            int or None: ID interno de la imagen o None si no se encuentra.
+            int or None: Internal image ID or None if not found.
         """
         image = self.session.query(Image.image_id).filter_by(nasa_id=nasa_id).first()
         return image.image_id if image else None
 
     def create_image(self, nasa_id, date, time, resolution, path):
         """
-        Crea un nuevo registro de imagen en la base de datos.
+        Create a new image record in the database.
 
         Args:
-            nasa_id (str): ID de la NASA.
-            date (date): Fecha de captura.
-            time (time): Hora de captura.
-            resolution (str): Resolución de la imagen.
-            path (str): Ruta del archivo de imagen.
+            nasa_id (str): NASA ID.
+            date (date): Capture date.
+            time (time): Capture time.
+            resolution (str): Image resolution.
+            path (str): Image file path.
 
         Returns:
-            Image: Instancia del objeto creado.
+            Image: Created instance.
         """
         new_image = Image(
             nasa_id=nasa_id, date=date, time=time, resolution=resolution, path=path
         )
         self.session.add(new_image)
         self.session.commit()
-        print(f"Imagen creada con ID: {new_image.image_id}")
+        print(f"Image created with ID: {new_image.image_id}")
         return new_image
 
     def update_image_path(self, nasa_id, path):
         """
-        Actualiza la ruta del archivo de una imagen existente.
+        Update the file path for an existing image.
 
         Args:
-            nasa_id (str): Identificador de la NASA.
-            path (str): Nueva ruta del archivo de imagen.
+            nasa_id (str): NASA identifier.
+            path (str): New image file path.
         """
         try:
             image = self.session.query(Image).filter_by(nasa_id=nasa_id).first()
             if image:
                 image.path = path
                 self.session.commit()
-                print(f"path actualizada para NASA ID: {nasa_id}")
+                print(f"Path updated for NASA ID: {nasa_id}")
             else:
-                print(f"Imagen no encontrada para NASA ID: {nasa_id}")
+                print(f"Image not found for NASA ID: {nasa_id}")
         except Exception as e:
             self.session.rollback()
-            print(f"Error al actualizar path para NASA ID {nasa_id}: {e}")
+            print(f"Error updating path for NASA ID {nasa_id}: {e}")
 
     def delete_image(self, nasa_id):
         """
-        Elimina una imagen de la base de datos y borra el archivo si existe.
+        Delete an image from the database and remove the file if it exists.
 
         Args:
-            nasa_id (str): Identificador de la NASA.
+            nasa_id (str): NASA identifier.
         """
         try:
             image = self.session.query(Image).filter_by(nasa_id=nasa_id).first()
@@ -235,28 +235,28 @@ class MetadataCRUD:
                 if os.path.exists(path.path):
                     os.remove(path.path)
                 self.session.commit()
-                print(f"Imagen eliminada para NASA ID: {nasa_id}")
+                print(f"Image deleted for NASA ID: {nasa_id}")
             else:
-                print(f"Imagen no encontrada para NASA ID: {nasa_id}")
+                print(f"Image not found for NASA ID: {nasa_id}")
         except Exception as e:
             self.session.rollback()
-            print(f"Error al eliminar imagen para NASA ID {nasa_id}: {e}")
+            print(f"Error deleting image for NASA ID {nasa_id}: {e}")
 
     def create_image_details(
         self, image_id, features, sun_elevation, sun_azimuth, cloud_cover
     ):
         """
-        Crea un registro de detalles de imagen.
+        Create an image detail record.
 
         Args:
-            image_id (int): ID de la imagen asociada.
-            features (str): Características observadas.
-            sun_elevation (float): Elevación solar.
-            sun_azimuth (float): Azimut solar.
-            cloud_cover (float): Porcentaje de nubes.
+            image_id (int): Associated image ID.
+            features (str): Observed features.
+            sun_elevation (float): Solar elevation.
+            sun_azimuth (float): Solar azimuth.
+            cloud_cover (float): Cloud cover percentage.
 
         Returns:
-            ImageDetails: Objeto creado.
+            ImageDetails: Created object.
         """
         new_detail = ImageDetails(
             image_id=image_id,
@@ -267,7 +267,7 @@ class MetadataCRUD:
         )
         self.session.add(new_detail)
         self.session.commit()
-        print(f"Detalles creados para image_id: {image_id}")
+        print(f"Details created for image_id: {image_id}")
         return new_detail
 
     def create_map_location(
@@ -278,22 +278,22 @@ class MetadataCRUD:
         center_lat,
         center_lon,
         nadir_center,
-        altitude,
+        altitudee,
     ):
         """
-        Crea un registro de localización geográfica asociado a una imagen.
+        Create a geographic location record associated with an image.
 
         Args:
-            image_id (int): ID de la imagen asociada.
-            nadir_lat (float): Latitud nadir.
-            nadir_lon (float): Longitud nadir.
-            center_lat (float): Latitud centro.
-            center_lon (float): Longitud centro.
-            nadir_center (str): Descripción de posición.
-            altitude (float): Altitud de captura.
+            image_id (int): Associated image ID.
+            nadir_lat (float): Nadir latitude.
+            nadir_lon (float): Nadir longitude.
+            center_lat (float): Center latitude.
+            center_lon (float): Center longitude.
+            nadir_center (str): Position description.
+            altitudee (float): Capture altitude.
 
         Returns:
-            MapLocation: Objeto creado.
+            MapLocation: Created object.
         """
         new_location = MapLocation(
             image_id=image_id,
@@ -302,29 +302,29 @@ class MetadataCRUD:
             center_lat=center_lat,
             center_lon=center_lon,
             nadir_center=nadir_center,
-            altitude=altitude,
+            altitudee=altitudee,
         )
         self.session.add(new_location)
         self.session.commit()
-        print(f"Ubicación creada para image_id: {image_id}")
+        print(f"Location created for image_id: {image_id}")
         return new_location
 
     def create_camera_information(
         self, image_id, camera, focal_length, tilt, format, camera_metadata
     ):
         """
-        Crea un registro de información de cámara asociado a una imagen.
+        Create a camera information record associated with an image.
 
         Args:
-            image_id (int): ID de la imagen asociada.
-            camera (str): Nombre de la cámara.
-            focal_length (float): Longitud focal del lente.
-            tilt (str): Inclinación de la cámara.
-            format (str): Formato de imagen.
-            camera_metadata (str): Otros metadatos relevantes.
+            image_id (int): Associated image ID.
+            camera (str): Camera name.
+            focal_length (float): Lens focal length.
+            tilt (str): Camera tilt.
+            format (str): Image format.
+            camera_metadata (str): Other relevant metadata.
 
         Returns:
-            CameraInformation: Objeto creado.
+            CameraInformation: Created object.
         """
         new_camera = CameraInformation(
             image_id=image_id,
@@ -336,7 +336,7 @@ class MetadataCRUD:
         )
         self.session.add(new_camera)
         self.session.commit()
-        print(f"Información de cámara creada para image_id: {image_id}")
+        print(f"Camera information created for image_id: {image_id}")
         return new_camera
 
     def close_session(self):

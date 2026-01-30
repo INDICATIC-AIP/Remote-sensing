@@ -1,19 +1,19 @@
 #!/bin/bash
 
-limpiar_logs() {
+clean_logs() {
     local log_dir="$PROJECT_DIR/logs"
 
     if [ ! -d "$log_dir" ]; then
-        echo "La carpeta de logs no existe: $log_dir"
+        echo "Logs folder does not exist: $log_dir"
         return
     fi
 
     find "$log_dir" -type f -name "*.log" -exec rm -f {} \;
-    echo "Todos los archivos .log en $log_dir han sido eliminados."
-    log_custom "Limpieza de Logs" "Se eliminaron todos los logs de la carpeta logs/" "INFO"
+    echo "All .log files in $log_dir have been removed."
+    log_custom "Log Cleanup" "All logs were removed from the logs folder" "INFO"
 }
 
-limpiar_logs
+clean_logs
 
 TASK_ID="$1"
 

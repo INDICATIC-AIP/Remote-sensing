@@ -9,7 +9,7 @@ API-NASAS/
 API-NASA/
 cosas codigo/2024
 cosas codigo/camera_data
-metadatos_noaa.json
+noaa_metadata.json
 logs/
 map/db/metadata.db
 map/scripts/noaa/ui/tasks_noaa.json
@@ -17,7 +17,7 @@ map/scripts/noaa/ui/tiles_panama.json
 map/db/metadata.db
 package-lock.json
 package.json
-map/scripts/metadatos_periodicos.json
+map/scripts/periodic_metadata.json
 
 # Archivos de credenciales y configuración sensible
 .env

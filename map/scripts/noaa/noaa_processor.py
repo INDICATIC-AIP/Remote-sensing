@@ -19,14 +19,14 @@ from noaa_metrics import NOAAMetrics
 #  IMPORTAR CONFIGURACIÓN DE RUTAS
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 try:
-    from rutas import NAS_PATH, NAS_MOUNT
+    from map.routes import NAS_PATH, NAS_MOUNT
 
     HAS_NAS_CONFIG = True
 except ImportError:
     NAS_MOUNT = "/mnt/nas"
     NAS_PATH = os.path.join(NAS_MOUNT, "DATOS API ISS")
     HAS_NAS_CONFIG = False
-    print("[WARNING] rutas.py no encontrado, usando configuración por defecto")
+    print("[WARNING] paths.py no encontrado, usando configuration por defecto")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -42,13 +42,13 @@ SILENT_MODE = False
 
 
 def set_silent_mode(silent=True):
-    """Activa/desactiva el modo silencioso para salidas JSON"""
+    """Activa/desactiva el mode silencioso para salidas JSON"""
     global SILENT_MODE
     SILENT_MODE = silent
 
 
 def log_message(message, force=False, level="INFO"):
-    """Log mejorado: INFO a stdout, ERROR a stderr"""
+    """Log improved: INFO a stdout, ERROR a stderr"""
     if SILENT_MODE and not force:
         return
 
@@ -61,7 +61,7 @@ def log_message(message, force=False, level="INFO"):
     else:
         print(formatted_message, flush=True)
 
-    # Log a archivo
+    # Log a file
     try:
         log_dir = os.path.join(os.path.dirname(__file__), "..", "..", "logs", "noaa")
         os.makedirs(log_dir, exist_ok=True)
@@ -72,7 +72,7 @@ def log_message(message, force=False, level="INFO"):
 
     except Exception as e:
         if not hasattr(log_message, "_warned_once"):
-            print(f"[WARNING] Log a archivo deshabilitado (permisos): {e}", flush=True)
+            print(f"[WARNING] Log a file deshabilitado (permisos): {e}", flush=True)
             log_message._warned_once = True
 
 
@@ -81,8 +81,8 @@ def log_message(message, force=False, level="INFO"):
 # ============================================================================
 
 
-def guardar_ejecucion_actual(export_data, storage_info):
-    """Guardar estado de la ejecución actual"""
+def save_current_execution(export_data, storage_info):
+    """Save status de la ejecución actual"""
     try:
         info = {
             "export_data": [
@@ -102,25 +102,25 @@ def guardar_ejecucion_actual(export_data, storage_info):
         with open(NOAA_EXECUTION_FILE, "w", encoding="utf-8") as f:
             json.dump(info, f, indent=2)
 
-        log_message(f" Estado de ejecución guardado: {len(export_data)} tareas")
+        log_message(f" Estado de ejecución guardado: {len(export_data)} tasks")
 
     except Exception as e:
-        log_message(f" Error guardando estado de ejecución: {e}", level="WARNING")
+        log_message(f" Error saving status de ejecución: {e}", level="WARNING")
 
 
-def cargar_ejecucion_actual():
-    """Cargar estado de ejecución actual"""
+def load_current_execution():
+    """Load status de ejecución actual"""
     try:
         if os.path.exists(NOAA_EXECUTION_FILE):
             with open(NOAA_EXECUTION_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
     except Exception as e:
-        log_message(f" Error cargando ejecución actual: {e}", level="WARNING")
+        log_message(f" Error loading ejecución actual: {e}", level="WARNING")
     return None
 
 
-def limpiar_ejecucion_actual():
-    """Limpiar registro de ejecución actual (éxito)"""
+def clear_current_execution():
+    """Clean registro de ejecución actual (success)"""
     try:
         if os.path.exists(NOAA_EXECUTION_FILE):
             os.remove(NOAA_EXECUTION_FILE)
@@ -129,36 +129,36 @@ def limpiar_ejecucion_actual():
         pass
 
 
-def limpiar_ejecucion_fallida():
-    """Limpiar elementos de la ejecución fallida"""
-    ejecucion = cargar_ejecucion_actual()
+def clear_failed_execution():
+    """Clean elementos de la ejecución fallida"""
+    execution = load_current_execution()
 
-    if not ejecucion:
+    if not execution:
         return
 
-    export_data = ejecucion.get("export_data", [])
+    export_data = execution.get("export_data", [])
     log_message(f" Limpiando {len(export_data)} elementos de ejecución fallida")
 
-    # Cancelar tareas de GEE pendientes
+    # Cancelar tasks de GEE pendientes
     try:
-        cancelar_tareas_gee_pendientes([task["task_id"] for task in export_data])
+        cancel_pending_gee_tasks([task["task_id"] for task in export_data])
     except Exception as e:
-        log_message(f" Error cancelando tareas GEE: {e}", level="WARNING")
+        log_message(f" Error cancelando tasks GEE: {e}", level="WARNING")
 
-    # Limpiar archivos descargados parcialmente
+    # Limpiar files descargados parcialmente
     try:
-        limpiar_archivos_parciales([task["id_ee"] for task in export_data])
+        clean_partial_files([task["id_ee"] for task in export_data])
     except Exception as e:
-        log_message(f" Error limpiando archivos parciales: {e}", level="WARNING")
+        log_message(f" Error cleaning files parciales: {e}", level="WARNING")
 
     # Limpiar registro
-    limpiar_ejecucion_actual()
+    clear_current_execution()
 
 
-def cancelar_tareas_gee_pendientes(task_descriptions):
-    """Cancelar tareas de Google Earth Engine pendientes"""
+def cancel_pending_gee_tasks(task_descriptions):
+    """Cancelar tasks de Google Earth Engine pendientes"""
     try:
-        # Obtener todas las tareas
+        # Obtener todas las tasks
         tasks = ee.batch.Task.list()
 
         cancelled_count = 0
@@ -177,16 +177,16 @@ def cancelar_tareas_gee_pendientes(task_descriptions):
                     pass
 
         if cancelled_count > 0:
-            log_message(f" {cancelled_count} tareas GEE canceladas")
+            log_message(f" {cancelled_count} tasks GEE canceladas")
 
     except Exception as e:
-        log_message(f" Error cancelando tareas GEE: {e}", level="WARNING")
+        log_message(f" Error cancelando tasks GEE: {e}", level="WARNING")
 
 
-def limpiar_archivos_parciales(id_ees):
-    """Limpiar archivos descargados parcialmente"""
+def clean_partial_files(id_ees):
+    """Clean files descargados parcialmente"""
     try:
-        # Buscar archivos relacionados en carpeta de trabajo
+        # Buscar files relacionados en folder de trabajo
         working_folders = [
             os.path.join(BASE_DIR, "../backend/API-NASA", "NOAA"),
             os.path.join(NAS_PATH, "NOAA") if os.path.exists(NAS_PATH) else None,
@@ -198,14 +198,14 @@ def limpiar_archivos_parciales(id_ees):
                 continue
 
             for id_ee in id_ees:
-                # Buscar archivos con este ID
+                # Buscar files con este ID
                 for root, dirs, files in os.walk(folder):
                     for file in files:
                         if id_ee in file and file.endswith(".tif"):
                             file_path = os.path.join(root, file)
                             try:
-                                # Verificar si el archivo está completo/válido
-                                if not verificar_integridad_tif(file_path):
+                                # Verificar si el file está completo/válido
+                                if not verify_tif_integrity(file_path):
                                     os.remove(file_path)
                                     removed_count += 1
                                     log_message(f" Archivo parcial eliminado: {file}")
@@ -213,21 +213,21 @@ def limpiar_archivos_parciales(id_ees):
                                 pass
 
         if removed_count > 0:
-            log_message(f" {removed_count} archivos parciales eliminados")
+            log_message(f" {removed_count} files parciales eliminados")
 
     except Exception as e:
-        log_message(f" Error limpiando archivos parciales: {e}", level="WARNING")
+        log_message(f" Error cleaning files parciales: {e}", level="WARNING")
 
 
-def verificar_integridad_tif(filepath):
-    """Verificar integridad básica de archivo TIF - MEJORADO"""
+def verify_tif_integrity(filepath):
+    """Verify integridad básica de file TIF - MEJORADO"""
     try:
         if not os.path.exists(filepath):
             return False
 
-        # Verificar tamaño mínimo - REDUCIDO para regiones pequeñas como Panamá
+        # Verificar size mínimo - REDUCIDO para regiones pequeñas como Panamá
         # file_size = os.path.getsize(filepath)
-        # if file_size < 500:  # 500 bytes en lugar de 1KB
+        # if file_size < 500:  # 500 bytes en place de 1KB
         #     return False
 
         # Verificar headers TIF
@@ -248,7 +248,7 @@ def verificar_integridad_tif(filepath):
             else:
                 return False
 
-        # Para archivos NOAA pequeños (regiones como Panamá), cualquier archivo > 500 bytes con headers correctos es válido
+        # Para files NOAA pequeños (regiones como Panamá), cualquier file > 500 bytes con headers corrects es válido
         # log_message(f" TIF válido: {os.path.basename(filepath)} ({file_size} bytes)")
         return True
 
@@ -262,8 +262,8 @@ def verificar_integridad_tif(filepath):
 # ============================================================================
 
 
-def cargar_retry_info():
-    """Cargar información de reintentos"""
+def load_retry_info():
+    """Load information de retries"""
     try:
         if os.path.exists(NOAA_RETRY_INFO_FILE):
             with open(NOAA_RETRY_INFO_FILE, "r", encoding="utf-8") as f:
@@ -273,50 +273,50 @@ def cargar_retry_info():
     return {}
 
 
-def guardar_retry_info(intento, proxima_ejecucion):
-    """Guardar información de reintentos"""
+def save_retry_info(intento, proxima_execution):
+    """Save information de retries"""
     try:
         info = {
             "intento": intento,
-            "proxima_ejecucion": proxima_ejecucion,
+            "proxima_execution": proxima_execution,
             "timestamp": datetime.now().isoformat(),
         }
         with open(NOAA_RETRY_INFO_FILE, "w", encoding="utf-8") as f:
             json.dump(info, f, indent=2)
     except Exception as e:
-        log_message(f" Error guardando retry info: {e}", level="WARNING")
+        log_message(f" Error saving retry info: {e}", level="WARNING")
 
 
-def limpiar_retry_info():
-    """Limpiar información de reintentos"""
+def clear_retry_info():
+    """Clean information de retries"""
     try:
         if os.path.exists(NOAA_RETRY_INFO_FILE):
             os.remove(NOAA_RETRY_INFO_FILE)
-        log_message(" Información de reintentos limpiada")
+        log_message(" Información de retries limpiada")
     except:
         pass
 
 
-def crear_tarea_reintento():
-    """Crear tarea programada para reintento automático"""
+def create_retry_task():
+    """Create task scheduled para retry automático"""
     try:
-        retry_info = cargar_retry_info()
-        intento_actual = retry_info.get("intento", 0) + 1
+        retry_info = load_retry_info()
+        current_attempt = retry_info.get("intento", 0) + 1
 
-        if intento_actual > MAX_RETRIES:
+        if current_attempt > MAX_RETRIES:
             log_message(f" Máximo de {MAX_RETRIES} intentos alcanzado", level="ERROR")
-            limpiar_retry_info()
+            clear_retry_info()
             return False
 
         # Tiempo incremental: 10, 20, 30, 40, 50, 60 min
-        minutos_espera = 10 * intento_actual
-        hora_ejecucion = datetime.now() + timedelta(minutes=minutos_espera)
-        hora_str = hora_ejecucion.strftime("%H:%M")
-        fecha_str = hora_ejecucion.strftime("%d/%m/%Y")
+        wait_minutes = 10 * current_attempt
+        execution_time = datetime.now() + timedelta(minutes=wait_minutes)
+        time_str = execution_time.strftime("%H:%M")
+        date_str = execution_time.strftime("%d/%m/%Y")
 
-        # Crear comando de tarea (ajustar según tu script principal)
+        # Crear comando de task (ajustar según tu script principal)
         script_path = os.path.abspath(__file__.replace("_processor.py", "_commands.py"))
-        comando_tarea = f'python "{script_path}" export_all'
+        task_command = f'python "{script_path}" export_all'
 
         cmd = [
             "/mnt/c/Windows/System32/schtasks.exe",
@@ -324,33 +324,33 @@ def crear_tarea_reintento():
             "/tn",
             NOAA_TASK_NAME,
             "/tr",
-            comando_tarea,
+            task_command,
             "/sc",
             "once",
             "/st",
-            hora_str,
+            time_str,
             "/sd",
-            fecha_str,
+            date_str,
             "/f",
         ]
 
-        resultado = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
 
-        if resultado.returncode == 0:
-            guardar_retry_info(intento_actual, hora_ejecucion.isoformat())
+        if result.returncode == 0:
+            save_retry_info(current_attempt, execution_time.isoformat())
             log_message(
-                f" Reintento {intento_actual}/{MAX_RETRIES} programado en {minutos_espera}min"
+                f" Reintento {current_attempt}/{MAX_RETRIES} scheduled en {wait_minutes}min"
             )
             return True
         else:
             log_message(
-                f" Error creando tarea de reintento: {resultado.stderr}",
+                f" Error creando task de retry: {result.stderr}",
                 level="ERROR",
             )
             return False
 
     except Exception as e:
-        log_message(f" Error creando tarea de reintento: {e}", level="ERROR")
+        log_message(f" Error creando task de retry: {e}", level="ERROR")
         return False
 
 
@@ -360,7 +360,7 @@ def crear_tarea_reintento():
 
 
 class RobustGEETaskManager:
-    """Gestor robusto de tareas de Google Earth Engine"""
+    """Gestor robusto de tasks de Google Earth Engine"""
 
     def __init__(self, max_concurrent_tasks: int = 6, check_interval: int = 15):
         self.max_concurrent_tasks = max_concurrent_tasks
@@ -372,7 +372,7 @@ class RobustGEETaskManager:
         self.interrupted = False
 
     def add_task(self, task, metadata: Dict):
-        """Añade una tarea con sus metadatos"""
+        """Añade una task con sus metadata"""
         with self.lock:
             self.tasks.append(
                 {
@@ -384,20 +384,20 @@ class RobustGEETaskManager:
             )
 
     def start_all_tasks(self):
-        """Inicia todas las tareas en lotes para respetar límites"""
+        """Inicia todas las tasks en lotes para respetar limits"""
         total_tasks = len(self.tasks)
         if total_tasks == 0:
             return
 
         log_message(
-            f" Iniciando {total_tasks} tareas en lotes de {self.max_concurrent_tasks}"
+            f" Iniciando {total_tasks} tasks en lotes de {self.max_concurrent_tasks}"
         )
 
         try:
             # Procesar en lotes
             for i in range(0, total_tasks, self.max_concurrent_tasks):
                 if self.interrupted:
-                    log_message(" Inicio de tareas interrumpido")
+                    log_message(" Inicio de tasks interrumpido")
                     break
 
                 batch = self.tasks[i : i + self.max_concurrent_tasks]
@@ -407,10 +407,10 @@ class RobustGEETaskManager:
                 ) // self.max_concurrent_tasks
 
                 log_message(
-                    f" Lote {batch_num}/{total_batches}: iniciando {len(batch)} tareas"
+                    f" Lote {batch_num}/{total_batches}: starting {len(batch)} tasks"
                 )
 
-                # Iniciar tareas del lote
+                # Iniciar tasks del lote
                 for task_info in batch:
                     if self.interrupted:
                         break
@@ -421,7 +421,7 @@ class RobustGEETaskManager:
                         log_message(f" Iniciada: {task_info['metadata']['id_ee']}")
                     except Exception as e:
                         log_message(
-                            f" Error iniciando {task_info['metadata']['id_ee']}: {e}"
+                            f" Error starting {task_info['metadata']['id_ee']}: {e}"
                         )
                         task_info["status"] = "START_FAILED"
 
@@ -434,16 +434,16 @@ class RobustGEETaskManager:
                 print(f"ProgresoLanzado: {total_tasks}/{total_tasks}", flush=True)
 
         except Exception as e:
-            log_message(f" Error durante inicio de tareas: {e}", level="ERROR")
+            log_message(f" Error during inicio de tasks: {e}", level="ERROR")
             self.interrupted = True
 
     def monitor_tasks(self, progress_callback=None):
-        """Monitorea todas las tareas hasta que terminen"""
+        """Monitorea todas las tasks hasta que terminen"""
         if not self.tasks:
-            log_message(" No hay tareas para monitorear")
+            log_message(" No hay tasks para monitorear")
             return
 
-        log_message(f" Monitoreando {len(self.tasks)} tareas...")
+        log_message(f" Monitoreando {len(self.tasks)} tasks...")
 
         try:
             while not self.interrupted:
@@ -514,7 +514,7 @@ class RobustGEETaskManager:
 
                 # Verificar si terminaron todas
                 if len(active_tasks) == 0:
-                    log_message(" Todas las tareas terminaron")
+                    log_message(" Todas las tasks terminaron")
                     break
 
                 time.sleep(self.check_interval)
@@ -524,12 +524,12 @@ class RobustGEETaskManager:
             log_message(" Monitoreo interrumpido por usuario")
         except Exception as e:
             self.interrupted = True
-            log_message(f" Error durante monitoreo: {e}", level="ERROR")
+            log_message(f" Error during monitoreo: {e}", level="ERROR")
 
         return self.completed_tasks, self.failed_tasks
 
     def interrupt(self):
-        """Interrumpir el gestor de tareas"""
+        """Interrumpir el gestor de tasks"""
         self.interrupted = True
 
 
@@ -565,8 +565,8 @@ class NOAAProcessor:
         self.region = region or ee.Geometry.Rectangle(
             [-80.4654093347489, 8.230836436612165, -78.8284464441239, 9.68500734309484]
         )
-        self.metadatos_path = self.get_correct_path_noaa(
-            "scripts/backend/API-NASA/metadatos_noaa.json"
+        self.metadata_path = self.get_correct_path_noaa(
+            "scripts/backend/API-NASA/noaa_metadata.json"
         )
 
         # Configuración de almacenamiento
@@ -582,15 +582,15 @@ class NOAAProcessor:
         self._setup_signal_handlers()
 
         log_message(f" Almacenamiento: {self.storage_type} → {self.storage_path}")
-        self.metrics = NOAAMetrics(self.storage_path, self.metadatos_path)
+        self.metrics = NOAAMetrics(self.storage_path, self.metadata_path)
 
     def _setup_signal_handlers(self):
         """Configurar manejo de señales para interrupciones"""
 
         def signal_handler(signum, frame):
-            log_message(f" Señal {signum} recibida, limpiando...")
+            log_message(f" Señal {signum} recibida, cleaning...")
             self.task_manager.interrupt()
-            limpiar_ejecucion_fallida()
+            clear_failed_execution()
             sys.exit(1)
 
         signal.signal(signal.SIGINT, signal_handler)
@@ -610,7 +610,7 @@ class NOAAProcessor:
         return local_path, "Local"
 
     def _check_nas_available(self) -> bool:
-        """Verificación mejorada del NAS"""
+        """Verificación improved del NAS"""
         try:
             if not os.path.exists(NAS_MOUNT):
                 return False
@@ -637,70 +637,68 @@ class NOAAProcessor:
         except:
             return False
 
-    def verificar_ejecucion_previa(self):
-        """Verificar si hay ejecución previa interrumpida"""
-        ejecucion = cargar_ejecucion_actual()
+    def verificar_execution_previa(self):
+        """Verify si hay ejecución previa interrumpida"""
+        execution = load_current_execution()
 
-        if ejecucion:
-            timestamp = ejecucion.get("timestamp", "")
-            total_tasks = ejecucion.get("total_tasks", 0)
+        if execution:
+            timestamp = execution.get("timestamp", "")
+            total_tasks = execution.get("total_tasks", 0)
 
             log_message(f" Ejecución previa interrumpida detectada:")
             log_message(f"    Timestamp: {timestamp}")
-            log_message(f"    Total tareas: {total_tasks}")
+            log_message(f"    Total tasks: {total_tasks}")
 
             # Limpiar automáticamente
             log_message(" Limpiando ejecución previa...")
-            limpiar_ejecucion_fallida()
+            clear_failed_execution()
 
             return True
 
         return False
 
-    def export_imagenes_nuevas(self):
+    def export_imagees_nuevas(self):
         """Exporta imágenes nuevas con sistema robusto"""
         log_message(" Iniciando exportación robusta...")
 
         # Verificar ejecución previa interrumpida
-        self.verificar_ejecucion_previa()
+        self.verificar_execution_previa()
         self.metrics.inicio_proceso = time.time()
 
         try:
-            # Verificar configuración
-            log_message(f" Verificando configuración...")
+            # Verificar configuration
+            log_message(f" Verificando configuration...")
             self.storage_path, self.storage_type = self._determine_storage_location()
             working_folder = self._get_working_folder()
             log_message(f" Carpeta de trabajo: {working_folder}")
 
             # Preparar exportaciones
-            export_data = self._preparar_exportaciones()
+            export_data = self._prepare_exportaciones()
 
             if not export_data:
                 log_message(" No hay imágenes nuevas para exportar")
                 #  VERIFICAR ARCHIVOS EXISTENTES
-                log_message(" Verificando archivos existentes...")
-                archivos_fisicos = self._verificar_archivos_fisicos()
-                log_message(
-                    f" Se encontraron {len(archivos_fisicos)} archivos en NOAA"
-                )
+                log_message(" Verificando files existentes...")
+                files_fisicos = self._verificar_files_fisicos()
+                log_message(f" Se encontraron {len(files_fisicos)} files en NOAA")
                 return
 
-            # Guardar estado de ejecución
+            # Guardar status de ejecución
             storage_info = {
                 "storage_path": self.storage_path,
                 "storage_type": self.storage_type,
                 "working_folder": working_folder,
             }
-            guardar_ejecucion_actual(export_data, storage_info)
+            save_current_execution(export_data, storage_info)
 
-            # Añadir tareas al gestor
-            for dataset, id_ee, imagen, task in export_data:
-                metadata = {"dataset": dataset, "id_ee": id_ee, "imagen": imagen}
+            # Añadir tasks al gestor
+            for dataset, id_ee, image, task in export_data:
+                metadata = {"dataset": dataset, "id_ee": id_ee, "image": image}
                 self.task_manager.add_task(task, metadata)
 
-            log_message(f" Preparadas {len(export_data)} tareas de exportación")
+            log_message(f" Preparadas {len(export_data)} tasks de exportación")
 
-            # Iniciar tareas
+            # Iniciar tasks
             self.task_manager.start_all_tasks()
 
             # Monitorear con callback
@@ -710,7 +708,7 @@ class NOAAProcessor:
                 elif event_type == "failed":
                     self._handle_failed_task(task_info)
 
-            # Monitorear hasta completar
+            # Monitorear hasta complete
             completed_tasks, failed_tasks = self.task_manager.monitor_tasks(
                 progress_callback
             )
@@ -720,68 +718,66 @@ class NOAAProcessor:
                 raise Exception("Proceso interrumpido")
 
             # Resumen
-            log_message(
-                f" Resumen:  {len(completed_tasks)} |  {len(failed_tasks)}"
-            )
+            log_message(f" Resumen:  {len(completed_tasks)} |  {len(failed_tasks)}")
 
             if completed_tasks:
                 # Proceso de descarga y organización
                 log_message(" Iniciando descarga desde Drive...")
 
                 # Esperar para que Drive procese
-                log_message("⏳ Esperando 30s para procesamiento en Drive...")
+                log_message("⏳ Esperando 30s para processing en Drive...")
                 time.sleep(30)
 
                 # Descargar con métricas
-                self.metrics.iniciar_descarga()
-                download_success = self.descargar_desde_drive()
-                self.metrics.finalizar_descarga()
+                self.metrics.start_descarga()
+                download_success = self.download_from_drive()
+                self.metrics.finish_descarga()
 
                 if download_success:
-                    log_message(" Organizando archivos...")
-                    self._organizar_archivos_descargados(completed_tasks)
-                    # self._organizar_archivos_descargados()
+                    log_message(" Organizando files...")
+                    self._organizar_files_descargados(completed_tasks)
+                    # self._organizar_files_descargados()
 
                 else:
-                    raise Exception("Error en descarga desde Drive")
+                    raise Exception("Error in descarga desde Drive")
 
-            log_message(" Actualizando metadatos de tarea actual...")
-            self._actualizar_metadatos_tarea_actual(completed_tasks)
+            log_message(" Actualizando metadata de task actual...")
+            self._actualizar_metadata_task_actual(completed_tasks)
 
             #  ÉXITO TOTAL
             self.metrics.calcular_metricas(completed_tasks, failed_tasks)
-            limpiar_ejecucion_actual()
-            limpiar_retry_info()
-            log_message(" Exportación completada exitosamente")
+            clear_current_execution()
+            clear_retry_info()
+            log_message(" Exportación completed exitosamente")
 
         except Exception as e:
-            #  FALLO: Limpiar y preparar reintento
-            log_message(f" Error durante exportación: {str(e)}", level="ERROR")
+            #  FALLO: Limpiar y prepare retry
+            log_message(f" Error during exportación: {str(e)}", level="ERROR")
 
             # Limpiar elementos de esta ejecución
-            limpiar_ejecucion_fallida()
+            clear_failed_execution()
 
-            # Crear tarea de reintento
-            if crear_tarea_reintento():
-                log_message(" Reintento automático programado")
+            # Crear task de retry
+            if create_retry_task():
+                log_message(" Reintento automático scheduled")
             else:
-                log_message(" No se pudo programar reintento", level="ERROR")
+                log_message(" No se pudo programar retry", level="ERROR")
 
             raise  # Re-lanzar para que el llamador maneje
 
     def _get_working_folder(self) -> str:
-        """Obtener carpeta de trabajo"""
+        """Get folder de trabajo"""
         return self.storage_path
 
-    def descargar_desde_drive(self, remote="gdrive"):
-        """Descarga robusta desde Drive con feedback mejorado"""
+    def download_from_drive(self, remote="gdrive"):
+        """Descarga robusta desde Drive con feedback improved"""
         try:
             working_folder = self._get_working_folder()
             log_message(f" DESCARGANDO DESDE {remote.upper()}")
             log_message(f" Destino: {working_folder}")
 
             # Verificar rclone
-            log_message(" Verificando configuración de rclone...")
+            log_message(" Verificando configuration de rclone...")
             try:
                 check_result = subprocess.run(
                     ["rclone", "listremotes"],
@@ -791,12 +787,10 @@ class NOAAProcessor:
                 )
                 if remote not in check_result.stdout:
                     log_message(f" Remote '{remote}' no está configurado en rclone")
-                    log_message(
-                        f" Remotes disponibles: {check_result.stdout.strip()}"
-                    )
+                    log_message(f" Remotes disponibles: {check_result.stdout.strip()}")
                     return False
                 else:
-                    log_message(f" Remote '{remote}' configurado correctamente")
+                    log_message(f" Remote '{remote}' configurado correctmente")
             except Exception as e:
                 log_message(f" Error verificando rclone: {e}")
                 return False
@@ -825,7 +819,7 @@ class NOAAProcessor:
             ]
             log_message(f" Ejecutando: {' '.join(cmd)}")
 
-            # Descarga con progreso mejorado
+            # Descarga con progreso improved
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
@@ -878,7 +872,7 @@ class NOAAProcessor:
                 try:
                     all_files = os.listdir(working_folder)
                     tif_files = [f for f in all_files if f.endswith(".tif")]
-                    log_message(f" Archivos .tif en destino: {len(tif_files)}")
+                    log_message(f" Archivos .tif en destination: {len(tif_files)}")
 
                     if tif_files:
                         log_message(" DESCARGA EXITOSA - Archivos encontrados:")
@@ -887,52 +881,52 @@ class NOAAProcessor:
                             file_size = os.path.getsize(file_path)
                             log_message(f"    {f} ({file_size} bytes)")
                         if len(tif_files) > 10:
-                            log_message(f"   ... y {len(tif_files) - 10} archivos más")
+                            log_message(f"   ... y {len(tif_files) - 10} files más")
                     else:
                         log_message(
                             " DESCARGA COMPLETADA PERO NO SE ENCONTRARON ARCHIVOS .TIF NUEVOS"
                         )
                         log_message(
-                            " Esto significa que todos los archivos ya estaban actualizados"
+                            " Esto significa que todos los files ya estaban actualizados"
                         )
 
                     print(f"PROGRESS: 100", flush=True)
                     return len(tif_files) > 0
 
                 except Exception as e:
-                    log_message(f" Error verificando archivos descargados: {e}")
+                    log_message(f" Error verificando files descargados: {e}")
                     return False
             else:
                 log_message(f" rclone falló con código {return_code}")
                 return False
 
         except Exception as e:
-            log_message(f" Error durante descarga: {e}")
+            log_message(f" Error during descarga: {e}")
             return False
 
-    def _mover_archivo(self, id_ee: str, dataset: str):
-        """Mover archivo con verificación de integridad"""
+    def _mover_file(self, id_ee: str, dataset: str):
+        """Mover file con verificación de integridad"""
         working_folder = self._get_working_folder()
 
-        # Buscar archivo
+        # Buscar file
         # possible_names = [f"noaa_{id_ee}.tif", f"{id_ee}.tif"]
         prefix = "viirs" if dataset == "VIIRS" else "dmsp"
         possible_names = [f"{prefix}_{id_ee}.tif", f"noaa_{id_ee}.tif", f"{id_ee}.tif"]
         src = None
-        nombre_archivo = None
+        nombre_file = None
 
         for name in possible_names:
             potential_src = os.path.join(working_folder, name)
             if os.path.exists(potential_src):
                 src = potential_src
-                nombre_archivo = name
+                nombre_file = name
                 break
 
         if not src:
             log_message(f" Archivo no encontrado: {possible_names}")
             return False
 
-        # Determinar destino
+        # Determinar destination
         if dataset == "VIIRS":
             year = id_ee.split("_")[0] if "_" in id_ee else id_ee[:4]
             dst_dir = os.path.join(working_folder, "VIIRS", year)
@@ -944,7 +938,7 @@ class NOAAProcessor:
         try:
             os.makedirs(dst_dir, exist_ok=True)
             file_size = os.path.getsize(src)
-            log_message(f" Organizando: {nombre_archivo} ({file_size} bytes)")
+            log_message(f" Organizando: {nombre_file} ({file_size} bytes)")
 
             #  MOVER ARCHIVO (esto falta o está mal)
             shutil.move(src, dst)
@@ -953,25 +947,25 @@ class NOAAProcessor:
                 log_message(f" Organizado: {dst}")
                 return True
             else:
-                log_message(f" Error: archivo no se movió correctamente")
+                log_message(f" Error: file no se movió correctmente")
                 return False
 
         except Exception as e:
-            log_message(f" Error organizando {nombre_archivo}: {e}")
+            log_message(f" Error organizando {nombre_file}: {e}")
             return False
 
-    def _organizar_archivos_descargados(self, completed_tasks):
-        """Organiza archivos descargados con verificación"""
-        log_message(" Organizando archivos descargados...")
+    def _organizar_files_descargados(self, completed_tasks):
+        """Organiza files descargados con verificación"""
+        log_message(" Organizando files descargados...")
 
         # if not completed_tasks:
-        #     log_message(" No hay tareas completadas para organizar")
+        #     log_message(" No hay tasks completeds para organizar")
         #     return
 
         working_folder = self._get_working_folder()
         log_message(f" Carpeta de trabajo: {working_folder}")
 
-        # Verificar archivos disponibles
+        # Verificar files disponibles
         try:
             all_files = os.listdir(working_folder)
             tif_files = [f for f in all_files if f.endswith(".tif")]
@@ -983,7 +977,7 @@ class NOAAProcessor:
                 log_message(f"   {f} ({file_size} bytes)")
 
         except Exception as e:
-            log_message(f" Error listando archivos: {e}")
+            log_message(f" Error listando files: {e}")
             return
 
         organized_count = 0
@@ -993,7 +987,7 @@ class NOAAProcessor:
             if not f.endswith(".tif"):
                 continue
 
-            # Detectar tipo por nombre de archivo
+            # Detectar tipo por nombre de file
             if f.startswith("viirs_"):
                 id_ee = f.replace("viirs_", "").replace(".tif", "")
                 dataset = "VIIRS"
@@ -1001,13 +995,13 @@ class NOAAProcessor:
                 id_ee = f.replace("dmsp_", "").replace(".tif", "")
                 dataset = "DMSP"
             else:
-                # Fallback para archivos con noaa_
+                # Fallback para files con noaa_
                 id_ee = f.replace("noaa_", "").replace(".tif", "")
                 dataset = "VIIRS" if "_" in id_ee else "DMSP"
 
             log_message(f" Organizando: {id_ee} ({dataset})")
 
-            success = self._mover_archivo(id_ee, dataset)
+            success = self._mover_file(id_ee, dataset)
             if success:
                 organized_count += 1
                 log_message(f" Completado: {id_ee}")
@@ -1015,16 +1009,16 @@ class NOAAProcessor:
                 failed_count += 1
                 log_message(f" Falló organización: {id_ee}")
 
-        log_message(f" Organización completada:")
+        log_message(f" Organización completed:")
         log_message(f"   Organizados: {organized_count}")
         log_message(f"   Fallidos: {failed_count}")
 
         # Verificar estructura final
         self._verificar_estructura_final()
 
-    # def _organizar_archivos_descargados(self):
-    #     """Organiza todos los archivos .tif encontrados en la carpeta de trabajo"""
-    #     log_message(" Organizando archivos descargados...")
+    # def _organizar_files_descargados(self):
+    #     """Organiza todos los files .tif encontrados en la folder de trabajo"""
+    #     log_message(" Organizando files descargados...")
 
     #     working_folder = self._get_working_folder()
     #     log_message(f" Carpeta de trabajo: {working_folder}")
@@ -1034,7 +1028,7 @@ class NOAAProcessor:
     #         tif_files = [f for f in all_files if f.endswith(".tif")]
     #         log_message(f" Archivos .tif disponibles: {len(tif_files)}")
     #     except Exception as e:
-    #         log_message(f" Error listando archivos: {e}")
+    #         log_message(f" Error listando files: {e}")
     #         return
 
     #     organized_count = 0
@@ -1046,19 +1040,19 @@ class NOAAProcessor:
 
     #         log_message(f" Organizando: {id_ee} ({dataset})")
 
-    #         success = self._mover_archivo(id_ee, dataset)
+    #         success = self._mover_file(id_ee, dataset)
     #         if success:
     #             organized_count += 1
     #             try:
-    #                 self._actualizar_metadatos(id_ee, dataset, imagen=None)
+    #                 self._actualizar_metadata(id_ee, dataset, image=None)
     #                 log_message(f" Completado: {id_ee}")
     #             except Exception as e:
-    #                 log_message(f" Error en metadatos de {id_ee}: {e}")
+    #                 log_message(f" Error in metadata de {id_ee}: {e}")
     #         else:
     #             failed_count += 1
     #             log_message(f" Falló organización: {id_ee}")
 
-    #     log_message(f" Organización completada:")
+    #     log_message(f" Organización completed:")
     #     log_message(f"   Organizados: {organized_count}")
     #     log_message(f"   Fallidos: {failed_count}")
 
@@ -1067,9 +1061,7 @@ class NOAAProcessor:
     def _verificar_estructura_final(self):
         """Verificación de estructura final"""
         working_folder = self._get_working_folder()
-        log_message(
-            f" Verificando estructura en {self.storage_type}: {working_folder}"
-        )
+        log_message(f" Verificando estructura en {self.storage_type}: {working_folder}")
 
         try:
             # Verificar VIIRS
@@ -1079,13 +1071,13 @@ class NOAAProcessor:
                     year_path = os.path.join(viirs_path, year_folder)
                     if os.path.isdir(year_path):
                         files = [f for f in os.listdir(year_path) if f.endswith(".tif")]
-                        log_message(f"   VIIRS/{year_folder}: {len(files)} archivos")
+                        log_message(f"   VIIRS/{year_folder}: {len(files)} files")
 
             # Verificar DMSP-OLS
             dmsp_path = os.path.join(working_folder, "DMSP-OLS")
             if os.path.exists(dmsp_path):
                 files = [f for f in os.listdir(dmsp_path) if f.endswith(".tif")]
-                log_message(f"   DMSP-OLS: {len(files)} archivos")
+                log_message(f"   DMSP-OLS: {len(files)} files")
 
             # Calcular espacio usado
             total_size = 0
@@ -1101,9 +1093,9 @@ class NOAAProcessor:
         except Exception as e:
             log_message(f" Error verificando estructura: {e}")
 
-    def _preparar_exportaciones(self) -> List[Tuple]:
+    def _prepare_exportaciones(self) -> List[Tuple]:
         """Prepara exportaciones de manera eficiente"""
-        metadatos = self._cargar_json(self.metadatos_path)
+        metadata = self._cargar_json(self.metadata_path)
         nuevas = []
 
         colecciones = [
@@ -1130,40 +1122,40 @@ class NOAAProcessor:
                 for full_id, t in zip(ids, times):
                     id_ee = full_id.split("/")[-1]
 
-                    if id_ee in metadatos:
+                    if id_ee in metadata:
                         continue
 
-                    imagen = ee.Image(full_id)
-                    nuevas.append((dataset, id_ee, imagen))
+                    image = ee.Image(full_id)
+                    nuevas.append((dataset, id_ee, image))
                     nuevas_dataset += 1
 
                 log_message(f" {dataset}: {nuevas_dataset} imágenes nuevas")
 
             except Exception as e:
-                log_message(f" Error procesando {dataset}: {e}")
+                log_message(f" Error processing {dataset}: {e}")
 
-        # Limitar para pruebas
+        # Limitar para tests
         if self.max_items:
             nuevas = nuevas[: self.max_items]
             log_message(f" Limitando a {self.max_items} elementos")
 
-        # Crear tareas de exportación
-        tareas = []
-        for dataset, id_ee, imagen in nuevas:
+        # Crear tasks de exportación
+        tasks = []
+        for dataset, id_ee, image in nuevas:
             scale = 1000
 
             if dataset == "DMSP":
-                imagen = imagen.select("stable_lights")
+                image = image.select("stable_lights")
             elif dataset == "VIIRS":
-                imagen = imagen.select("avg_rad")
+                image = image.select("avg_rad")
 
             # task = ee.batch.Export.image.toDrive(
-            #     image=imagen.clip(self.region),
+            #     image=image.clip(self.region),
             #     description=f"noaa_{id_ee}",
             #     fileNamePrefix=f"noaa_{id_ee}",
             prefix = "viirs" if dataset == "VIIRS" else "dmsp"
             task = ee.batch.Export.image.toDrive(
-                image=imagen.clip(self.region),
+                image=image.clip(self.region),
                 description=f"{prefix}_{id_ee}",
                 fileNamePrefix=f"{prefix}_{id_ee}",
                 region=self.region,
@@ -1171,99 +1163,99 @@ class NOAAProcessor:
                 maxPixels=1e13,
                 fileFormat="GeoTIFF",
             )
-            tareas.append((dataset, id_ee, imagen, task))
+            tasks.append((dataset, id_ee, image, task))
 
-        log_message(f" Preparadas {len(tareas)} tareas")
-        return tareas
+        log_message(f" Preparadas {len(tasks)} tasks")
+        return tasks
 
     def _handle_completed_task(self, task_info: Dict):
-        """Maneja tarea completada"""
+        """Maneja task completed"""
         metadata = task_info["metadata"]
         id_ee = metadata["id_ee"]
         log_message(f" Completada: {id_ee}")
 
     def _handle_failed_task(self, task_info: Dict):
-        """Maneja tarea fallida"""
+        """Maneja task fallida"""
         metadata = task_info["metadata"]
         id_ee = metadata["id_ee"]
         error = task_info.get("error", "Error desconocido")
         log_message(f" Fallida: {id_ee} - {error}")
 
-    def _actualizar_metadatos(self, id_ee: str, dataset: str, imagen):
-        """Actualiza metadatos de imagen procesada"""
+    def _actualizar_metadata(self, id_ee: str, dataset: str, image):
+        """Actualiza metadata de image procesada"""
         try:
-            fecha = imagen.date().format("YYYY-MM-dd").getInfo()
+            date = image.date().format("YYYY-MM-dd").getInfo()
             info = {
                 "dataset": dataset,
-                "fecha": fecha,
+                "date": date,
                 "region": "Panama",
-                "resolucion": "1km" if dataset == "DMSP" else "500m",
+                "resolution": "1km" if dataset == "DMSP" else "500m",
                 "procesado": datetime.now().isoformat(),
             }
 
-            metadatos = self._cargar_json(self.metadatos_path)
-            metadatos[id_ee] = info
-            self._guardar_json(self.metadatos_path, metadatos)
+            metadata = self._cargar_json(self.metadata_path)
+            metadata[id_ee] = info
+            self._guardar_json(self.metadata_path, metadata)
 
             log_message(f" Metadatos actualizados: {id_ee}")
         except Exception as e:
-            log_message(f" Error actualizando metadatos {id_ee}: {e}")
+            log_message(f" Error actualizando metadata {id_ee}: {e}")
 
-    def _guardar_json(self, ruta: str, data: Dict):
-        """Guarda archivo JSON con manejo de errores"""
+    def _guardar_json(self, path: str, data: Dict):
+        """Guarda file JSON con manejo de errors"""
         try:
-            os.makedirs(os.path.dirname(ruta), exist_ok=True)
-            with open(ruta, "w", encoding="utf-8") as f:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
         except Exception as e:
-            log_message(f" Error guardando {ruta}: {e}")
+            log_message(f" Error saving {path}: {e}")
 
-    def _cargar_json(self, ruta: str) -> Dict:
-        """Cargar archivo JSON con manejo de errores"""
+    def _cargar_json(self, path: str) -> Dict:
+        """Load file JSON con manejo de errors"""
         try:
-            if not os.path.isabs(ruta):
+            if not os.path.isabs(path):
                 base_dir = os.path.dirname(os.path.abspath(__file__))
-                ruta_absoluta = os.path.join(base_dir, ruta)
-                if not os.path.exists(ruta_absoluta):
-                    ruta_absoluta = os.path.abspath(ruta)
-                ruta = ruta_absoluta
+                path_absoluta = os.path.join(base_dir, path)
+                if not os.path.exists(path_absoluta):
+                    path_absoluta = os.path.abspath(path)
+                path = path_absoluta
 
-            if not os.path.exists(ruta):
-                os.makedirs(os.path.dirname(ruta), exist_ok=True)
-                with open(ruta, "w", encoding="utf-8") as f:
+            if not os.path.exists(path):
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path, "w", encoding="utf-8") as f:
                     json.dump({}, f, indent=2)
                 return {}
 
-            with open(ruta, "r", encoding="utf-8") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 content = f.read().strip()
                 if not content:
                     return {}
                 return json.loads(content)
 
         except Exception as e:
-            log_message(f" Error cargando {ruta}: {e}")
+            log_message(f" Error loading {path}: {e}")
             return {}
 
     def get_correct_path_noaa(self, original_path):
-        """Detecta ubicación correcta para metadatos - ARREGLADO"""
+        """Detecta ubicación correct para metadata - ARREGLADO"""
 
-        #  UBICACIONES POSIBLES EN ORDEN DE PRIORIDAD
+        #  POSSIBLE LOCATIONS IN PRIORITY ORDER
         possible_paths = [
-            # 1. Ruta NAS si está disponible
-            "/mnt/nas/DATOS API ISS/NOAA/metadatos_noaa.json",
-            # 2. Ruta relativa desde script actual
+            # 1. NAS path if available
+            "/mnt/nas/DATOS API ISS/NOAA/noaa_metadata.json",
+            # 2. Relative path from current script
             os.path.join(
                 os.path.dirname(__file__),
                 "..",
                 "backend",
                 "API-NASA",
-                "metadatos_noaa.json",
+                "noaa_metadata.json",
             ),
-            # 3. Ruta absoluta desde BASE_DIR
-            os.path.join(BASE_DIR, "..", "backend", "API-NASA", "metadatos_noaa.json"),
-            # 4. Ruta en UI
-            os.path.join(BASE_DIR, "ui", "metadatos_noaa.json"),
-            # 5. Ruta original como fallback
+            # 3. Absolute path from BASE_DIR
+            os.path.join(BASE_DIR, "..", "backend", "API-NASA", "noaa_metadata.json"),
+            # 4. Path in UI
+            os.path.join(BASE_DIR, "ui", "noaa_metadata.json"),
+            # 5. Original path as fallback
             original_path,
         ]
 
@@ -1277,39 +1269,39 @@ class NOAAProcessor:
         except:
             pass
 
-        # Buscar primera ruta que existe o sea creatable
+        # Buscar primera path que existe o sea creatable
         for path in possible_paths:
             # Saltar NAS si no está montado
             if "/mnt/nas" in path and not nas_mounted:
                 continue
 
             try:
-                # Convertir a ruta absoluta
+                # Convertir a path absoluta
                 abs_path = os.path.abspath(path)
 
                 # Si existe, usarla
                 if os.path.exists(abs_path):
-                    log_message(f" Usando metadatos existentes: {abs_path}")
+                    log_message(f" Usando metadata existentes: {abs_path}")
                     return abs_path
 
-                # Si no existe, verificar si se puede crear el directorio
+                # Si no existe, verificar si se puede crear el directory
                 parent_dir = os.path.dirname(abs_path)
                 if os.path.exists(parent_dir) or self._can_create_directory(parent_dir):
-                    log_message(f" Usando nueva ubicación de metadatos: {abs_path}")
+                    log_message(f" Usando nueva ubicación de metadata: {abs_path}")
                     return abs_path
 
             except Exception as e:
                 continue
 
-        # Fallback final: crear en directorio del script
-        fallback_path = os.path.join(BASE_DIR, "metadatos_noaa.json")
-        log_message(f" Usando fallback para metadatos: {fallback_path}")
+        # Fallback final: crear en directory del script
+        fallback_path = os.path.join(BASE_DIR, "metadata_noaa.json")
+        log_message(f" Usando fallback para metadata: {fallback_path}")
         return fallback_path
 
     def _can_create_directory(self, directory_path):
-        """Verificar si se puede crear un directorio"""
+        """Verify si se puede crear un directory"""
         try:
-            # Verificar directorios padre hasta encontrar uno que exista
+            # Verificar directorys padre hasta encontrar uno que exista
             current = directory_path
             while current and current != os.path.dirname(current):
                 if os.path.exists(current):
@@ -1325,7 +1317,7 @@ class NOAAProcessor:
     # ============================================================================
 
     def generate_tiles_json(self, output_path="scripts/noaa/ui/tiles_panama.json"):
-        """Genera tiles JSON de forma optimizada"""
+        """Genera tiles JSON de forma optimized"""
         output_path = os.path.abspath(output_path)
         log_message(f" Guardando tiles en: {output_path}")
 
@@ -1364,7 +1356,7 @@ class NOAAProcessor:
                         dataset_tiles = future.result()
                         tiles.update(dataset_tiles)
                     except Exception as e:
-                        log_message(f" Error procesando colección: {e}")
+                        log_message(f" Error processing colección: {e}")
 
             # Guardar tiles
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -1386,20 +1378,20 @@ class NOAAProcessor:
                 "system:time_start", True
             )
             ids = coleccion_filtrada.aggregate_array("system:id").getInfo()
-            fechas = coleccion_filtrada.aggregate_array("system:time_start").getInfo()
+            dates = coleccion_filtrada.aggregate_array("system:time_start").getInfo()
 
-            for full_id, t in zip(ids, fechas):
+            for full_id, t in zip(ids, dates):
                 try:
                     id_ee = full_id.split("/")[-1]
                     image = ee.Image(full_id).select(band).clip(self.region)
                     url = image.getMapId(self.vis_params)["tile_fetcher"].url_format
-                    fecha = (
+                    date = (
                         datetime.utcfromtimestamp(t / 1000).strftime("%Y-%m")
                         if dataset == "VIIRS"
                         else id_ee[-4:]
                     )
 
-                    tiles[fecha] = {
+                    tiles[date] = {
                         "tile": url,
                         "dataset": dataset,
                         "id": id_ee,
@@ -1410,12 +1402,12 @@ class NOAAProcessor:
                 except Exception as e:
                     log_message(f" Error {dataset} {id_ee}: {e}")
         except Exception as e:
-            log_message(f" Error procesando colección {dataset}: {e}")
+            log_message(f" Error processing colección {dataset}: {e}")
 
         return tiles
 
     def get_metadata(self, year: str) -> Optional[Dict]:
-        """Obtiene metadatos para un año específico"""
+        """Obtiene metadata para un año específico"""
         try:
             set_silent_mode(True)
 
@@ -1473,25 +1465,25 @@ class NOAAProcessor:
                 except Exception as e:
                     if not SILENT_MODE:
                         log_message(
-                            f" Error obteniendo metadatos {dataset} para {year}: {e}"
+                            f" Error getting metadata {dataset} para {year}: {e}"
                         )
 
             return metadata_result if metadata_result else None
 
         except Exception as e:
             if not SILENT_MODE:
-                log_message(f" Error obteniendo metadatos para {year}: {e}")
+                log_message(f" Error getting metadata para {year}: {e}")
             return None
         finally:
             set_silent_mode(False)
 
-    def _ordenar_metadatos(self, metadatos: Dict) -> Dict:
-        """Ordena metadatos: DMSP por año, VIIRS por año y mes"""
+    def _ordenar_metadata(self, metadata: Dict) -> Dict:
+        """Ordena metadata: DMSP por año, VIIRS por año y mes"""
         # Separar por dataset
         dmsp_items = []
         viirs_items = []
 
-        for id_ee, data in metadatos.items():
+        for id_ee, data in metadata.items():
             dataset = data.get("dataset", "")
 
             if dataset == "DMSP":
@@ -1509,21 +1501,21 @@ class NOAAProcessor:
         viirs_items.sort(key=lambda x: (x[0], x[1]), reverse=True)
 
         # Reconstruir diccionario ordenado
-        metadatos_ordenados = {}
+        metadata_ordenados = {}
         for year, id_ee, data in dmsp_items:
-            metadatos_ordenados[id_ee] = data
+            metadata_ordenados[id_ee] = data
         for year, month, id_ee, data in viirs_items:
-            metadatos_ordenados[id_ee] = data
+            metadata_ordenados[id_ee] = data
 
-        return metadatos_ordenados
+        return metadata_ordenados
 
-    def _actualizar_metadatos_tarea_actual(self, completed_tasks):
-        """Actualiza metadatos SOLO de las imágenes de la tarea actual usando API de Earth Engine"""
+    def _actualizar_metadata_task_actual(self, completed_tasks):
+        """Actualiza metadata SOLO de las imágenes de la task actual usando API de Earth Engine"""
         try:
-            log_message(" Actualizando metadatos de tarea actual...")
+            log_message(" Actualizando metadata de task actual...")
 
-            # Cargar metadatos existentes
-            metadatos_existentes = self._cargar_json(self.metadatos_path)
+            # Cargar metadata existentes
+            metadata_existentes = self._cargar_json(self.metadata_path)
 
             nuevos_agregados = 0
 
@@ -1531,25 +1523,25 @@ class NOAAProcessor:
                 metadata = task_info["metadata"]
                 dataset = metadata["dataset"]
                 id_ee = metadata["id_ee"]
-                imagen = metadata["imagen"]
+                image = metadata["image"]
 
-                # Verificar si archivo existe físicamente
-                if not self._archivo_existe_en_noaa(id_ee, dataset):
+                # Verificar si file existe físicamente
+                if not self._file_existe_en_noaa(id_ee, dataset):
                     log_message(f" Archivo no encontrado físicamente: {id_ee}")
                     continue
 
-                # Solo agregar si NO existe en metadatos
-                if id_ee not in metadatos_existentes:
+                # Solo agregar si NO existe en metadata
+                if id_ee not in metadata_existentes:
                     try:
                         #  USAR METADATOS DE EARTH ENGINE API
-                        ee_info = imagen.getInfo()
+                        ee_info = image.getInfo()
                         properties = ee_info.get("properties", {})
                         bands = ee_info.get("bands", [])
                         system_id = properties.get(
                             "system:id", f"NOAA/{dataset}/{id_ee}"
                         )
 
-                        metadatos_existentes[id_ee] = {
+                        metadata_existentes[id_ee] = {
                             "id": id_ee,
                             "dataset": dataset,
                             "properties": properties,
@@ -1563,25 +1555,25 @@ class NOAAProcessor:
                         log_message(f" Metadatos agregados: {id_ee}")
 
                     except Exception as e:
-                        log_message(f" Error obteniendo metadatos EE de {id_ee}: {e}")
+                        log_message(f" Error getting metadata EE de {id_ee}: {e}")
                 else:
-                    log_message(f" Ya existe en metadatos: {id_ee}")
+                    log_message(f" Ya existe en metadata: {id_ee}")
 
             #  GUARDAR SIN ORDENAR
-            self._guardar_json(self.metadatos_path, metadatos_existentes)
+            self._guardar_json(self.metadata_path, metadata_existentes)
 
             log_message(
-                f" Metadatos actualizados: {nuevos_agregados} nuevos de {len(completed_tasks)} tareas"
+                f" Metadatos actualizados: {nuevos_agregados} nuevos de {len(completed_tasks)} tasks"
             )
             return True
 
         except Exception as e:
-            log_message(f" Error actualizando metadatos de tarea: {e}")
+            log_message(f" Error actualizando metadata de task: {e}")
             return False
 
-    def _verificar_archivos_fisicos(self):
-        """Verifica qué archivos existen físicamente en las carpetas NOAA"""
-        archivos_encontrados = []
+    def _verificar_files_fisicos(self):
+        """Verifica qué files existen físicamente en las folders NOAA"""
+        files_encontrados = []
 
         try:
             # Verificar DMSP-OLS
@@ -1590,7 +1582,7 @@ class NOAAProcessor:
                 for file in os.listdir(dmsp_path):
                     if file.endswith(".tif"):
                         id_ee = file.replace("noaa_", "").replace(".tif", "")
-                        archivos_encontrados.append(id_ee)
+                        files_encontrados.append(id_ee)
 
             # Verificar VIIRS por años
             viirs_path = os.path.join(self.storage_path, "VIIRS")
@@ -1601,17 +1593,17 @@ class NOAAProcessor:
                         for file in os.listdir(year_path):
                             if file.endswith(".tif"):
                                 id_ee = file.replace("noaa_", "").replace(".tif", "")
-                                archivos_encontrados.append(id_ee)
+                                files_encontrados.append(id_ee)
 
-            log_message(f" Archivos físicos encontrados: {len(archivos_encontrados)}")
-            return archivos_encontrados
+            log_message(f" Archivos físicos encontrados: {len(files_encontrados)}")
+            return files_encontrados
 
         except Exception as e:
-            log_message(f" Error verificando archivos físicos: {e}")
+            log_message(f" Error verificando files físicos: {e}")
             return []
 
-    def _archivo_existe_en_noaa(self, id_ee: str, dataset: str):
-        """Verifica si un archivo específico existe en las carpetas NOAA"""
+    def _file_existe_en_noaa(self, id_ee: str, dataset: str):
+        """Verifica si un file específico existe en las folders NOAA"""
         try:
             if dataset == "DMSP":
                 file_path = os.path.join(
@@ -1628,22 +1620,22 @@ class NOAAProcessor:
             return os.path.exists(file_path)
 
         except Exception as e:
-            log_message(f" Error verificando archivo {id_ee}: {e}")
+            log_message(f" Error verificando file {id_ee}: {e}")
             return False
 
     def generate_metadata_file(
-        self, output_path="scripts/backend/API-NASA/metadatos_noaa.json"
+        self, output_path="scripts/backend/API-NASA/metadata_noaa.json"
     ):
-        """Genera metadatos_noaa.json compatible con la UI"""
+        """Genera metadata_noaa.json compatible con la UI"""
         try:
             set_silent_mode(True)
 
             output_path = self.get_correct_path_noaa(os.path.abspath(output_path))
 
             if not SILENT_MODE:
-                print(f" Generando metadatos en: {output_path}")
+                print(f" Generando metadata en: {output_path}")
 
-            metadatos_ui = {}
+            metadata_ui = {}
 
             colecciones = [
                 ("DMSP", ee.ImageCollection("NOAA/DMSP-OLS/NIGHTTIME_LIGHTS")),
@@ -1668,7 +1660,7 @@ class NOAAProcessor:
                         properties = image_info["properties"]
                         bands = image_info.get("bands", [])
 
-                        # metadatos_ui[id_ee] = {
+                        # metadata_ui[id_ee] = {
                         #     "id": id_ee,
                         #     "dataset": dataset,
                         #     "properties": properties,
@@ -1676,7 +1668,7 @@ class NOAAProcessor:
                         #     "system_id": full_id,
                         #     "extracted_at": datetime.now().isoformat(),
                         # }
-                        metadatos_ui[id_ee] = {
+                        metadata_ui[id_ee] = {
                             "id": id_ee,
                             "dataset": dataset,
                             "properties": properties,
@@ -1691,7 +1683,7 @@ class NOAAProcessor:
                         count = len(
                             [
                                 k
-                                for k, v in metadatos_ui.items()
+                                for k, v in metadata_ui.items()
                                 if v["dataset"] == dataset
                             ]
                         )
@@ -1699,14 +1691,16 @@ class NOAAProcessor:
 
                 except Exception as e:
                     if not SILENT_MODE:
-                        print(f"[ERROR] Error procesando {dataset}: {e}", file=sys.stderr)
+                        print(
+                            f"[ERROR] Error processing {dataset}: {e}", file=sys.stderr
+                        )
 
-            # Guardar archivo
+            # Guardar file
             try:
                 os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
                 with open(output_path, "w", encoding="utf-8") as f:
-                    json.dump(metadatos_ui, f, indent=2, ensure_ascii=False)
+                    json.dump(metadata_ui, f, indent=2, ensure_ascii=False)
 
                 if not SILENT_MODE:
                     print(f"[INFO] Metadatos guardados: {output_path}")
@@ -1716,12 +1710,12 @@ class NOAAProcessor:
 
             except Exception as e:
                 if not SILENT_MODE:
-                    print(f"[ERROR] Error guardando archivo: {e}", file=sys.stderr)
+                    print(f"[ERROR] Error saving file: {e}", file=sys.stderr)
                 return False
 
         except Exception as e:
             if not SILENT_MODE:
-                print(f"[ERROR] Error generando metadatos: {e}", file=sys.stderr)
+                print(f"[ERROR] Error generando metadata: {e}", file=sys.stderr)
             return False
         finally:
             set_silent_mode(False)
@@ -1741,8 +1735,8 @@ class NOAAProcessor:
 # ============================================================================
 
 
-def verificar_configuracion_nas():
-    """Verificar configuración del NAS"""
+def verificar_configuration_nas():
+    """Verify configuration del NAS"""
     try:
         if os.path.ismount(NAS_MOUNT):
             print(f" NAS montado en: {NAS_MOUNT}")
@@ -1766,14 +1760,14 @@ def verificar_configuracion_nas():
         return False
 
 
-def mostrar_configuracion():
-    """Muestra configuración actual"""
+def mostrar_configuration():
+    """Muestra configuration actual"""
     print(" CONFIGURACIÓN NOAA ROBUSTA:")
     print(f" NAS Mount: {NAS_MOUNT}")
     print(f" NAS Path: {NAS_PATH}")
-    print(f" Config desde rutas.py: {HAS_NAS_CONFIG}")
+    print(f" Config desde paths.py: {HAS_NAS_CONFIG}")
 
-    nas_ok = verificar_configuracion_nas()
+    nas_ok = verificar_configuration_nas()
 
     if nas_ok:
         print(" MODO: NAS disponible")
@@ -1788,21 +1782,21 @@ def main():
     log_message(" Iniciando NOAA Processor Robusto...")
 
     try:
-        # Mostrar configuración
+        # Mostrar configuration
         info = processor.get_storage_info()
         log_message(f" Configuración:")
         for key, value in info.items():
             log_message(f"  {key}: {value}")
 
         # Ejecutar exportación robusta
-        processor.export_imagenes_nuevas()
+        processor.export_imagees_nuevas()
 
-        log_message(" Proceso completado exitosamente")
+        log_message(" Proceso completed exitosamente")
 
         processor.generate_metadata_file()
 
     except Exception as e:
-        log_message(f" Error en proceso principal: {e}", level="ERROR")
+        log_message(f" Error in proceso principal: {e}", level="ERROR")
         sys.exit(1)
 
 
@@ -1810,6 +1804,6 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) > 1 and sys.argv[1] == "check_config":
-        mostrar_configuracion()
+        mostrar_configuration()
     else:
         main()

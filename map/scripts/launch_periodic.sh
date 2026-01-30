@@ -1,26 +1,26 @@
 #!/bin/bash
 
-limpiar_logs() {
+clean_logs() {
     local log_dir="$PROJECT_DIR/logs"
 
     if [ ! -d "$log_dir" ]; then
-        echo "La carpeta de logs no existe: $log_dir"
+        echo "Logs folder does not exist: $log_dir"
         return
     fi
 
     find "$log_dir" -type f -name "*.log" -exec rm -f {} \;
-    echo "Todos los archivos .log en $log_dir han sido eliminados."
-    log_custom "Limpieza de Logs" "Se eliminaron todos los logs de la carpeta logs/" "INFO" "$LOG_WEB"
+    echo "All .log files in $log_dir have been removed."
+    log_custom "Log Cleanup" "All logs were removed from the logs folder" "INFO" "$LOG_WEB"
 }
 
-limpiar_logs
+clean_logs
 
-# Parámetro 1: ID de la tarea (ej: task_1744260000000)
+# Param 1: task ID (e.g., task_1744260000000)
 TASK_ID="$1"
 
-# Ejecutar con entorno virtual y logs visibles y guardados
+# Run with virtualenv and show/save logs
 env RUNNING_DOWNLOAD=1 /home/jose/API-NASA/venv/bin/python3 \
   /home/jose/API-NASA/map/scripts/backend/run_batch_processor.py \
-  /home/jose/API-NASA/map/scripts/periodica/tasks.json \
-  "$TASK_ID" 2>&1 | tee -a /home/jose/API-NASA/map/scripts/periodica/auto_log.txt
+  /home/jose/API-NASA/map/scripts/periodic_tasks/tasks.json \
+  "$TASK_ID" 2>&1 | tee -a /home/jose/API-NASA/map/scripts/periodic_tasks/auto_log.txt
 
