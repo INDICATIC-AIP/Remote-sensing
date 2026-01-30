@@ -15,7 +15,7 @@ fetch("template.html")
       template: template,
       data() {
         return {
-          limiteDescarga: 320,
+          limiteDescarga: 15,
           filters: [],
           returnFieldsSelected: {},
           accordionOpen: null,
