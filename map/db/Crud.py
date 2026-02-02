@@ -60,10 +60,10 @@ class MetadataCRUD:
                 self.session.query(Metadatos)
                 .order_by(
                     case(
-                        (Metadatos.date.is_(None), 1),  # Si date es NULL → 1
+                        (Metadatos.FECHA.is_(None), 1),  # Si FECHA es NULL → 1
                         else_=0,  # Si no → 0
                     ).asc(),  # Primero los no-nulos (0), luego los NULLs (1)
-                    Metadatos.date.asc(),  # Luego ordena por la date real
+                    Metadatos.FECHA.asc(),  # Luego ordena por la FECHA real
                 )
                 .offset(offset)
                 .limit(limit)
@@ -71,27 +71,27 @@ class MetadataCRUD:
             )
             return [
                 (
-                    row.id,
-                    row.image,
-                    row.nasa_id,
-                    row.date,
-                    row.time,
-                    row.resolution,
-                    row.nadir_lat,
-                    row.nadir_lon,
-                    row.center_lat,
-                    row.center_lon,
-                    row.nadir_center,
-                    row.altitude,
-                    row.place,
-                    row.elevacion_sol,
-                    row.azimut_sol,
-                    row.cobertura_nubosa,
-                    row.camera,
-                    row.longitude_focal,
-                    row.inclinacion,
-                    row.formato,
-                    row.camera_metadata,
+                    row.ID,
+                    row.IMAGEN,
+                    row.NASA_ID,
+                    row.FECHA,
+                    row.HORA,
+                    row.RESOLUCION,
+                    row.NADIR_LAT,
+                    row.NADIR_LON,
+                    row.CENTER_LAT,
+                    row.CENTER_LON,
+                    row.NADIR_CENTER,
+                    row.ALTITUD,
+                    row.LUGAR,
+                    row.ELEVACION_SOL,
+                    row.AZIMUT_SOL,
+                    row.COBERTURA_NUBOSA,
+                    row.CAMARA,
+                    row.LONGITUD_FOCAL,
+                    row.INCLINACION,
+                    row.FORMATO,
+                    row.CAMARA_METADATOS,
                 )
                 for row in rows
             ]
@@ -111,36 +111,36 @@ class MetadataCRUD:
                 self.session.query(Metadatos)
                 .order_by(
                     case(
-                        (Metadatos.date.is_(None), 1),  # Si date es NULL → 1
+                        (Metadatos.FECHA.is_(None), 1),  # Si FECHA es NULL → 1
                         else_=0,  # Si no → 0
                     ).asc(),  # Primero los no-nulos (0), luego los NULLs (1)
-                    Metadatos.date.asc(),  # Luego ordena por la date real
+                    Metadatos.FECHA.asc(),  # Luego ordena por la FECHA real
                 )
                 .all()
             )
             return [
                 (
-                    row.id,
-                    row.image,
-                    row.nasa_id,
-                    row.date,
-                    row.time,
-                    row.resolution,
-                    row.nadir_lat,
-                    row.nadir_lon,
-                    row.center_lat,
-                    row.center_lon,
-                    row.nadir_center,
-                    row.altitude,
-                    row.place,
-                    row.elevacion_sol,
-                    row.azimut_sol,
-                    row.cobertura_nubosa,
-                    row.camera,
-                    row.longitude_focal,
-                    row.inclinacion,
-                    row.formato,
-                    row.camera_metadata,
+                    row.ID,
+                    row.IMAGEN,
+                    row.NASA_ID,
+                    row.FECHA,
+                    row.HORA,
+                    row.RESOLUCION,
+                    row.NADIR_LAT,
+                    row.NADIR_LON,
+                    row.CENTER_LAT,
+                    row.CENTER_LON,
+                    row.NADIR_CENTER,
+                    row.ALTITUD,
+                    row.LUGAR,
+                    row.ELEVACION_SOL,
+                    row.AZIMUT_SOL,
+                    row.COBERTURA_NUBOSA,
+                    row.CAMARA,
+                    row.LONGITUD_FOCAL,
+                    row.INCLINACION,
+                    row.FORMATO,
+                    row.CAMARA_METADATOS,
                 )
                 for row in rows
             ]

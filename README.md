@@ -203,64 +203,43 @@ earthengine info
 
 ## Installation Guide
 
-### Step 1: Clone Repository
+### Quick Setup (Automated)
 
 ```bash
+# 1. Clone repository
 git clone [repository-url] && cd Remote-sensing
+
+# 2. Run automated setup
+chmod +x setup.sh
+./setup.sh
 ```
 
-### Step 2: Set Up Python Environment
+The setup script installs all dependencies automatically. After completion, follow the manual configuration steps in steps_setup.md.
 
-```bash
-# Create virtual environment
-python3 -m venv venv
+### Prerequisites Before Installation
 
-# Activate environment
-source venv/bin/activate  # Linux/macOS
-# or
-venv\Scripts\activate  # Windows
-```
+1. **NASA API Key** (required)
+   - Get from: https://eol.jsc.nasa.gov/SearchPhotos/PhotosDatabaseAPI/
+   - Wait for approval
 
-### Step 3: Install Dependencies
+2. **Google Earth Engine** (optional for NOAA module)
+   - Setup: https://console.cloud.google.com/
+   - Wait for approval
 
-```bash
-# Install Python packages
-pip install -r requirements.txt
+3. **Environment Configuration**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your credentials (see steps_setup.md for details)
+   ```
 
-# Install Node.js packages
-npm install
-```
+### Manual Installation
 
-### Step 4: Configure Google Earth Engine (Optional)
-
-```bash
-# Authenticate with Google Earth Engine
-earthengine authenticate
-```
-
-### Step 5: Initialize Database
-
-```bash
-# Create and initialize SQLite database
-python db/Tables.py
-```
-
-### Step 6: Configure Credentials
-
-```bash
-# Copy environment template and configure
-cp .env.example .env
-nano .env
-
-# Required variables (see "Required APIs & Credentials Setup" section above):
-# - NASA_API_KEY: Obtained from https://api.nasa.gov/ or https://eol.jsc.nasa.gov/
-# - GEE_SERVICE_ACCOUNT_JSON: Path to Google Earth Engine credentials JSON
-# - GEE_PROJECT_ID: Your Google Cloud project ID
-# - NAS_IP: NAS server IP address
-# - NAS_SHARE: NAS share name
-# - NAS_USERNAME: NAS credentials username
-# - NAS_PASSWORD: NAS credentials password
-```
+If you prefer manual setup or automated setup fails, follow steps_setup.md section by section:
+- Environment setup
+- Database initialization  
+- API credentials configuration
+- NAS mounting (optional)
+- Troubleshooting
 
 ## Usage Guide
 

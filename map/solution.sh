@@ -172,7 +172,7 @@ case "$opcion" in
         noaa
         ;;
     "View Metadata")
-        python3 "$PROJECT_DIR/scripts/utils/table2.py" || error_exit "Error displaying metadata."
+        PYTHONPATH="$PROJECT_DIR" python3 "$PROJECT_DIR/scripts/utils/table2.py" || error_exit "Error displaying metadata."
         # echo "Presiona Enter para volver al menú..."
         # read -r
         ;;

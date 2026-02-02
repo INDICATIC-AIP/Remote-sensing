@@ -110,7 +110,7 @@ function createPeriodicWindow() {
         }
     });
 
-    nasaWindow.loadFile(path.join(__dirname, 'scripts', 'periodica', 'periodica.html'));
+    nasaWindow.loadFile(path.join(__dirname, 'scripts', 'periodic_tasks', 'periodica.html'));
     nasaWindow.on("closed", () => { nasaWindow = null; });
 }
 

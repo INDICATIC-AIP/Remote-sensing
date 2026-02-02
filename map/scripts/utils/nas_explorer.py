@@ -7,11 +7,11 @@ import sys
 import threading
 from pathlib import Path
 
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend"))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
+sys.path.insert(
+    1, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend"))
 )
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
-from map.routes import NAS_MOUNT, NAS_PATH
+from routes import NAS_MOUNT, NAS_PATH
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk, Gio, GLib

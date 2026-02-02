@@ -1,0 +1,28 @@
+{
+  "name": "map",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron . 2>&1 | grep -v 'org.freedesktop.DBus'",
+    "nasa": "electron main.js --nasa 2>&1 | grep -v 'org.freedesktop.DBus'",
+    "noaa": "electron main.js --noaa 2>&1 | grep -v 'org.freedesktop.DBus'",
+    "nocturno": "electron main.js --nocturno 2>&1 | grep -v 'org.freedesktop.DBus'"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^33.4.1"
+  },
+  "dependencies": {
+    "@mermaid-js/mermaid-cli": "^11.4.2",
+    "axios": "^1.9.0",
+    "cheerio": "^1.0.0",
+    "googleapis": "^148.0.0",
+    "leaflet": "^1.9.4",
+    "leaflet.markercluster": "^1.5.3",
+    "nprogress": "^0.2.0",
+    "sqlite3": "^5.1.7"
+  }
+}

@@ -16,8 +16,8 @@ import json
 from datetime import datetime
 import subprocess
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-from map.routes import DB_URL
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+from routes import DB_URL
 from db.Crud import MetadataCRUD
 from log import log_custom
 

@@ -132,48 +132,48 @@ class Metadatos(Base):
     Combined view that aggregates all metadata related to an image.
 
     Attributes:
-        id (int): Unique identifier.
-        image (str): Image filename.
-        nasa_id (str): Image identifier provided by NASA.
-        date (date): Capture date.
-        time (time): Capture time.
-        resolution (str): Image resolution.
-        nadir_lat (float): Latitude at the nadir point.
-        nadir_lon (float): Longitude at the nadir point.
-        center_lat (float): Center latitude.
-        center_lon (float): Center longitude.
-        nadir_center (str): Description of central position.
-        altitude (float): Capture altitude.
-        place (str): Place associated with the image (if applicable).
-        elevacion_sol (float): Solar elevation at capture time.
-        azimut_sol (float): Solar azimuth at capture time.
-        cobertura_nubosa (float): Cloud cover percentage.
-        camera (str): Camera type or model.
-        longitude_focal (float): Lens focal length.
-        inclinacion (str): Camera tilt angle.
-        formato (str): Image format.
-        camera_metadata (str): Additional camera information.
+        ID (int): Unique identifier.
+        IMAGEN (str): Image filename.
+        NASA_ID (str): Image identifier provided by NASA.
+        FECHA (date): Capture date.
+        HORA (time): Capture time.
+        RESOLUCION (str): Image resolution.
+        NADIR_LAT (float): Latitude at the nadir point.
+        NADIR_LON (float): Longitude at the nadir point.
+        CENTER_LAT (float): Center latitude.
+        CENTER_LON (float): Center longitude.
+        NADIR_CENTER (str): Description of central position.
+        ALTITUD (float): Capture altitude.
+        LUGAR (str): Place associated with the image (if applicable).
+        ELEVACION_SOL (float): Solar elevation at capture time.
+        AZIMUT_SOL (float): Solar azimuth at capture time.
+        COBERTURA_NUBOSA (float): Cloud cover percentage.
+        CAMARA (str): Camera type or model.
+        LONGITUD_FOCAL (float): Lens focal length.
+        INCLINACION (str): Camera tilt angle.
+        FORMATO (str): Image format.
+        CAMARA_METADATOS (str): Additional camera information.
     """
 
     __tablename__ = "Metadatos"  # Vista
-    id = Column(Integer, primary_key=True)
-    image = Column(String)
-    nasa_id = Column(String)
-    date = Column(Date)
-    time = Column(Time)
-    resolution = Column(String)
-    nadir_lat = Column(Float)
-    nadir_lon = Column(Float)
-    center_lat = Column(Float)
-    center_lon = Column(Float)
-    nadir_center = Column(String)
-    altitude = Column(Float)
-    place = Column(String)
-    elevacion_sol = Column(Float)
-    azimut_sol = Column(Float)
-    cobertura_nubosa = Column(Float)
-    camera = Column(String)
-    longitude_focal = Column(Float)
-    inclinacion = Column(String)
-    formato = Column(String)
-    camera_metadata = Column(String)
+    ID = Column(Integer, primary_key=True)
+    IMAGEN = Column(String)
+    NASA_ID = Column(String)
+    FECHA = Column(Date)
+    HORA = Column(Time)
+    RESOLUCION = Column(String)
+    NADIR_LAT = Column(Float)
+    NADIR_LON = Column(Float)
+    CENTER_LAT = Column(Float)
+    CENTER_LON = Column(Float)
+    NADIR_CENTER = Column(String)
+    ALTITUD = Column(Float)
+    LUGAR = Column(String)
+    ELEVACION_SOL = Column(Float)
+    AZIMUT_SOL = Column(Float)
+    COBERTURA_NUBOSA = Column(Float)
+    CAMARA = Column(String)
+    LONGITUD_FOCAL = Column(Float)
+    INCLINACION = Column(String)
+    FORMATO = Column(String)
+    CAMARA_METADATOS = Column(String)

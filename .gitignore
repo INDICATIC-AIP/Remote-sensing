@@ -15,8 +15,6 @@ map/db/metadata.db
 map/scripts/noaa/ui/tasks_noaa.json
 map/scripts/noaa/ui/tiles_panama.json
 map/db/metadata.db
-package-lock.json
-package.json
 map/scripts/periodic_metadata.json
 
 # Archivos de credenciales y configuración sensible
