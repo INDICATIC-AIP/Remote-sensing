@@ -16,7 +16,8 @@ map/scripts/noaa/ui/tasks_noaa.json
 map/scripts/noaa/ui/tiles_panama.json
 map/db/metadata.db
 map/scripts/periodic_metadata.json
-
+map/db/metadata.db-wal
+map/db/metadata.db-shm
 # Archivos de credenciales y configuración sensible
 .env
 .smbcredentials

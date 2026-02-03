@@ -92,4 +92,4 @@ INNER JOIN
 
 -- SELECT ELEVACION_SOL, NASA_ID, FECHA, MISSION FROM Metadatos WHERE ELEVACION_SOL > 0 OR ELEVACION_SOL IS NULL LIMIT 10;
 
-SELECT COUNT(*) FROM Metadatos WHERE ( strftime('%H%M' , FECHA) >= '19:45' OR strftime('%H%M' , FECHA) >= '05:30');
+-- SELECT COUNT(*) FROM Metadatos WHERE ( strftime('%H%M' , FECHA) >= '19:45' OR strftime('%H%M' , FECHA) >= '05:30');
