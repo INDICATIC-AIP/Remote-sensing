@@ -14,17 +14,21 @@ from typing import List, Dict, Optional
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "utils")))
 from log import log_custom
 
+# Project root for configuration
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
 # Cargar variables de entorno
 from dotenv import load_dotenv
-load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".env"))
+
+load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 
 # Configuración
 API_KEY = os.getenv("NASA_API_KEY", "")
 if not API_KEY:
     raise ValueError("NASA_API_KEY no está configurada en .env")
 API_URL = "https://eol.jsc.nasa.gov/SearchPhotos/PhotosDatabaseAPI/PhotosDatabaseAPI.pl"
-LOG_FILE = os.path.join("..", "..", "logs", "iss", "general.log")
-DATABASE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "db", "metadata.db")
+LOG_FILE = os.path.join(PROJECT_ROOT, "logs", "iss", "general.log")
+DATABASE_PATH = os.path.join(PROJECT_ROOT, "db", "metadata.db")
 
 #  LÍMITE DESDE run_batch_processor.py
 LIMITE_IMAGENES = 15
@@ -176,9 +180,7 @@ class TaskAPIClient:
             )
             return set()
 
-    def deduplicar_results_multi_consulta(
-        self, results: List[Dict]
-    ) -> List[Dict]:
+    def deduplicar_results_multi_consulta(self, results: List[Dict]) -> List[Dict]:
         """Deduplicar results de múltiples consultas por NASA_ID"""
         vistos = set()
         unicos = []
@@ -365,9 +367,7 @@ class TaskAPIClient:
                 file=LOG_FILE,
             )
 
-            results_unicos = self.deduplicar_results_multi_consulta(
-                todos_los_results
-            )
+            results_unicos = self.deduplicar_results_multi_consulta(todos_los_results)
 
             # 7. Verificar cuáles ya existen en BD
             todos_nasa_ids = self.extraer_nasa_ids_de_results(results_unicos)

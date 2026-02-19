@@ -10,12 +10,15 @@ import threading
 from bs4 import BeautifulSoup
 import re
 
+#  PROJECT ROOT
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
 #  IMPORTAR DEPENDENCIAS PARA LOGGING
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "utils")))
 from log import log_custom
 
 #  LOG FILE
-LOG_FILE = os.path.join("..", "..", "logs", "iss", "general.log")
+LOG_FILE = os.path.join(PROJECT_ROOT, "logs", "iss", "general.log")
 
 #  CACHE GLOBAL PARA EVITAR SCRAPING DUPLICADO
 metadata_cache = {}

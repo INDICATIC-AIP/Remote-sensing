@@ -18,14 +18,15 @@ from bs4 import BeautifulSoup
 import time
 
 # Agregar paths
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "utils")))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+sys.path.append(PROJECT_ROOT)
 
 from nasa_api_client import obtener_imagees_nuevas_costa_rica
 from log import log_custom
 from map.routes import NAS_PATH, NAS_MOUNT
 
-LOG_FILE = os.path.join("..", "..", "logs", "iss", "general.log")
+LOG_FILE = os.path.join(PROJECT_ROOT, "logs", "iss", "general.log")
 
 
 def get_camera_output_folder():
@@ -344,9 +345,7 @@ async def bulk_download_camera_metadata(limit: int = 0) -> Dict[str, str]:
 
     # Paso 1: Obtener imágenes nuevas
     print(" PASO 1: Obteniendo imágenes nuevas...")
-    imagees = await obtener_imagees_nuevas_costa_rica(
-        limit=limit, mode_nocturno=True
-    )
+    imagees = await obtener_imagees_nuevas_costa_rica(limit=limit, mode_nocturno=True)
 
     if not imagees:
         print(" No hay imágenes nuevas")

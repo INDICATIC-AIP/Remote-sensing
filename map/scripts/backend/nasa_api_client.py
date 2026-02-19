@@ -20,15 +20,17 @@ from log import log_custom
 
 # Cargar variables de entorno
 from dotenv import load_dotenv
-load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".env"))
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 
 # Configuración
 API_KEY = os.getenv("NASA_API_KEY", "")
 if not API_KEY:
     raise ValueError("NASA_API_KEY no está configurada en .env")
 API_URL = "https://eol.jsc.nasa.gov/SearchPhotos/PhotosDatabaseAPI/PhotosDatabaseAPI.pl"
-LOG_FILE = os.path.join("..", "..", "logs", "iss", "general.log")
-DATABASE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "db", "metadata.db")
+LOG_FILE = os.path.join(PROJECT_ROOT, "logs", "iss", "general.log")
+DATABASE_PATH = os.path.join(PROJECT_ROOT, "db", "metadata.db")
 
 # Configuración por defecto de Costa Rica
 DEFAULT_BOUNDING_BOX = {"latMin": 6.1, "latMax": 10.8, "lonMin": -82.9, "lonMax": -77.3}

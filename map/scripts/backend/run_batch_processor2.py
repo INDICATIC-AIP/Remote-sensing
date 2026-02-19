@@ -17,7 +17,8 @@ from typing import Dict, List, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Add required paths
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.append(PROJECT_ROOT)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "utils")))
 
 # Imports
@@ -39,14 +40,14 @@ from map.routes import NAS_PATH, NAS_MOUNT
 # Load environment variables
 from dotenv import load_dotenv
 
-load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".env"))
+load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 
 # Configuration
 API_KEY = os.getenv("NASA_API_KEY", "")
 if not API_KEY:
     raise ValueError("NASA_API_KEY is not configured in .env")
-LOG_FILE = os.path.join("..", "..", "logs", "iss", "general.log")
-DATABASE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "db", "metadata.db")
+LOG_FILE = os.path.join(PROJECT_ROOT, "logs", "iss", "general.log")
+DATABASE_PATH = os.path.join(PROJECT_ROOT, "db", "metadata.db")
 RETRY_INFO_FILE = os.path.join(os.path.dirname(__file__), "retry_info.json")
 CURRENT_EXECUTION_FILE = os.path.join(
     os.path.dirname(__file__), "current_execution.json"

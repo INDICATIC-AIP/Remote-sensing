@@ -18,7 +18,8 @@ import time
 import asyncio
 
 # Agregar paths necesarias
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.append(PROJECT_ROOT)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "utils")))
 
 # Importaciones
@@ -37,7 +38,7 @@ from task_api_client import process_task_scheduled
 # Cargar variables de entorno
 from dotenv import load_dotenv
 
-load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".env"))
+load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 
 LIMITE_IMAGENES = 320
 
@@ -49,8 +50,8 @@ API_KEY = os.getenv("NASA_API_KEY", "")
 if not API_KEY:
     raise ValueError("NASA_API_KEY no está configurada en .env")
 API_URL = "https://eol.jsc.nasa.gov/SearchPhotos/PhotosDatabaseAPI/PhotosDatabaseAPI.pl"
-LOG_FILE = os.path.join("..", "..", "logs", "iss", "general.log")
-DATABASE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "db", "metadata.db")
+LOG_FILE = os.path.join(PROJECT_ROOT, "logs", "iss", "general.log")
+DATABASE_PATH = os.path.join(PROJECT_ROOT, "db", "metadata.db")
 RETRY_INFO_FILE = os.path.join(os.path.dirname(__file__), "retry_info.json")
 CURRENT_EXECUTION_FILE = os.path.join(
     os.path.dirname(__file__), "current_execution.json"
