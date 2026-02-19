@@ -39,6 +39,7 @@ from nasa_api_client import NASAAPIClient
 from imageProcessor import (
     download_imagees_aria2c_optimized,
     verificar_destination_descarga,
+    HybridOptimizedProcessor,
 )
 from extract_enriched_metadata import extract_metadata_enriquecido
 
@@ -308,6 +309,20 @@ async def main():
         )
 
         download_imagees_aria2c_optimized(metadata_list, conexiones=32)
+
+        # Insert records into database using HybridOptimizedProcessor
+        db_path = os.path.join(ROOT_DIR, "map", "db", "metadata.db")
+        if metadata_list and os.path.exists(db_path):
+            try:
+                processor = HybridOptimizedProcessor(database_path=db_path)
+                processor._write_to_database_optimized(metadata_list)
+            except Exception as e:
+                log_custom(
+                    section="CLI Download",
+                    message=f"Warning: Database insert failed: {str(e)}",
+                    level="WARNING",
+                    file=LOG_FILE,
+                )
 
         print_header("Download Completed")
         print(f"Successfully downloaded {len(metadata_list)} images.")
