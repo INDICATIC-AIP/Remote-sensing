@@ -20,12 +20,13 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..
 # Cargar variables de entorno
 from dotenv import load_dotenv
 
-load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
+env_file = os.path.join(PROJECT_ROOT, ".env")
+load_dotenv(env_file, override=True)
 
 # Configuración
 API_KEY = os.getenv("NASA_API_KEY", "")
 if not API_KEY:
-    raise ValueError("NASA_API_KEY no está configurada en .env")
+    raise ValueError(f"NASA_API_KEY not configured in {env_file}")
 API_URL = "https://eol.jsc.nasa.gov/SearchPhotos/PhotosDatabaseAPI/PhotosDatabaseAPI.pl"
 LOG_FILE = os.path.join(PROJECT_ROOT, "logs", "iss", "general.log")
 DATABASE_PATH = os.path.join(PROJECT_ROOT, "db", "metadata.db")
