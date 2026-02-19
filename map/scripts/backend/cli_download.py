@@ -16,7 +16,9 @@ import sys
 import asyncio
 import argparse
 import json
-from typing import Dict, Optional
+import sqlite3
+from datetime import datetime
+from typing import Dict, Optional, List, Set, Tuple
 from dotenv import load_dotenv
 
 # Cargar .env desde raíz del proyecto
@@ -85,6 +87,116 @@ def validate_region(region: str) -> Dict:
     return REGIONS[region_key]
 
 
+def _get_year_from_metadata(metadata: Dict) -> int:
+    date_str = metadata.get("FECHA", "")
+    try:
+        return datetime.strptime(date_str, "%Y.%m.%d").year
+    except Exception:
+        return 2024
+
+
+def _get_mission_from_metadata(metadata: Dict) -> str:
+    nasa_id = metadata.get("NASA_ID", "")
+    try:
+        return nasa_id.split("-")[0]
+    except Exception:
+        return "UNKNOWN"
+
+
+def _resolve_filename(metadata: Dict) -> str:
+    url = metadata.get("URL", "")
+    url_path = url.split("?", 1)[0]
+    raw_basename = os.path.basename(url_path)
+    name, ext = os.path.splitext(raw_basename)
+
+    nasa_id = metadata.get("NASA_ID")
+    is_geotiff_url = "geotiff" in url.lower() or "getgeotiff.pl" in url.lower()
+    if is_geotiff_url and nasa_id:
+        return f"{nasa_id}.tif"
+
+    if ext == "":
+        return raw_basename + ".jpg"
+    return raw_basename
+
+
+def _resolve_final_path(metadata: Dict, base_path: str) -> str:
+    year = _get_year_from_metadata(metadata)
+    mission = _get_mission_from_metadata(metadata)
+    camera = metadata.get("CAMARA") or "Sin_Camera"
+    filename = _resolve_filename(metadata)
+    return os.path.join(base_path, str(year), mission, camera, filename)
+
+
+def _get_existing_ids_from_db(
+    db_path: str, nasa_ids: List[str]
+) -> Tuple[Set[str], Optional[str]]:
+    if not os.path.exists(db_path):
+        return set(), f"Database file not found: {db_path}"
+
+    if not nasa_ids:
+        return set(), None
+
+    try:
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='Image'"
+            )
+            if cursor.fetchone() is None:
+                return set(), "Table 'Image' not found in database"
+
+            placeholders = ",".join("?" * len(nasa_ids))
+            query = f"SELECT nasa_id FROM Image WHERE nasa_id IN ({placeholders})"
+            cursor.execute(query, nasa_ids)
+            rows = cursor.fetchall()
+            return {row[0] for row in rows}, None
+    except Exception as exc:
+        return set(), f"DB query failed: {exc}"
+
+
+def _print_verification_report(metadata_list: List[Dict], base_path: str):
+    db_path = os.path.join(ROOT_DIR, "map", "db", "metadata.db")
+    nasa_ids = [m.get("NASA_ID", "") for m in metadata_list if m.get("NASA_ID")]
+    existing_ids, db_error = _get_existing_ids_from_db(db_path, nasa_ids)
+
+    print_header("Verification Report")
+    print(f"Database path: {db_path}")
+    if db_error:
+        print(f"Database status: ERROR - {db_error}")
+    else:
+        print("Database status: OK")
+
+    file_exists_count = 0
+    db_exists_count = 0
+    both_ok_count = 0
+
+    for item in metadata_list:
+        nasa_id = item.get("NASA_ID", "")
+        source_url = item.get("URL", "")
+        final_path = _resolve_final_path(item, base_path)
+        file_exists = os.path.exists(final_path)
+        db_exists = nasa_id in existing_ids if nasa_id else False
+
+        if file_exists:
+            file_exists_count += 1
+        if db_exists:
+            db_exists_count += 1
+        if file_exists and db_exists:
+            both_ok_count += 1
+
+        print(f"- NASA_ID: {nasa_id}")
+        print(f"  Source URL: {source_url}")
+        print(f"  Final path: {final_path}")
+        print(f"  File exists: {'YES' if file_exists else 'NO'}")
+        print(f"  In DB(Image): {'YES' if db_exists else 'NO'}")
+
+    print("\nVerification summary:")
+    print(f"  Total checked: {len(metadata_list)}")
+    print(f"  Files present: {file_exists_count}/{len(metadata_list)}")
+    print(f"  DB records present: {db_exists_count}/{len(metadata_list)}")
+    print(f"  File + DB consistent: {both_ok_count}/{len(metadata_list)}\n")
+
+
 async def main():
     """Función principal"""
     parser = argparse.ArgumentParser(
@@ -118,7 +230,7 @@ async def main():
     try:
         region_config = validate_region(args.region)
     except ValueError as e:
-        print(f"❌ Error: {e}", file=sys.stderr)
+        print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
     # Start info
@@ -193,6 +305,8 @@ async def main():
         print_header("Download Completed")
         print(f"Successfully downloaded {len(metadata_list)} images.")
         print(f"Location: {base_path}\n")
+
+        _print_verification_report(metadata_list, base_path)
 
         log_custom(
             section="CLI Download",
