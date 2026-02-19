@@ -22,11 +22,16 @@ from datetime import datetime
 from typing import Dict, Optional, List, Set, Tuple
 from dotenv import load_dotenv
 
-# Usar config.py para robusta resolución de proyecto root
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
-from config import PROJECT_ROOT as ROOT_DIR
-from config import find_project_root
-# config.py ya carga .env automáticamente
+# Calcular ROOT_DIR directamente sin depender de imports
+_script_path = Path(__file__).resolve()
+ROOT_DIR = str(
+    _script_path.parents[3]
+)  # Walk up 3 levels: backend -> scripts -> map -> root
+
+# Load .env from root
+_env_file = os.path.join(ROOT_DIR, ".env")
+if os.path.exists(_env_file):
+    load_dotenv(_env_file)
 
 # Importar clientes
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
