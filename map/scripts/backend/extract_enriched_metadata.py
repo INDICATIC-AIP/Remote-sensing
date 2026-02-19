@@ -5,6 +5,7 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 import threading
+import socket
 
 #  IMPORTAR BEAUTIFULSOUP PARA PARSING HTML
 from bs4 import BeautifulSoup
@@ -24,10 +25,49 @@ LOG_FILE = os.path.join(PROJECT_ROOT, "logs", "iss", "general.log")
 metadata_cache = {}
 nadir_alt_cache = {}
 cache_lock = threading.Lock()
+network_cache = {"checked": False, "reachable": True}
+
+
+def nasa_host_reachable_once() -> bool:
+    """Check NASA host connectivity once per execution to avoid repeated timeouts."""
+    with cache_lock:
+        if network_cache["checked"]:
+            return network_cache["reachable"]
+
+    reachable = True
+    try:
+        with socket.create_connection(("eol.jsc.nasa.gov", 443), timeout=3):
+            reachable = True
+    except OSError:
+        reachable = False
+
+    with cache_lock:
+        network_cache["checked"] = True
+        network_cache["reachable"] = reachable
+
+    if not reachable:
+        log_custom(
+            section="Network Check",
+            message="NASA host unreachable; metadata scraping requests will be skipped for this run",
+            level="WARNING",
+            file=LOG_FILE,
+        )
+
+    return reachable
 
 
 def obtener_nadir_altitude_camera_optimized(nasa_id):
     """SCRAPING DE NADIR, ALTITUD Y CÁMARA - IGUAL QUE EN downloadAtime()"""
+    if not nasa_host_reachable_once():
+        return {
+            "NADIR_CENTER": None,
+            "ALTITUD": None,
+            "CAMARA": None,
+            "FECHA_CAPTURA": None,
+            "GEOTIFF_URL": None,
+            "HAS_GEOTIFF": False,
+        }
+
     MAX_RETRIES = 2
     TIMEOUT = 8  # 8 segundos
 
@@ -188,6 +228,9 @@ def obtener_nadir_altitude_camera_optimized(nasa_id):
 
 def obtener_camera_metadata_optimized(nasa_id):
     """DESCARGAR CAMERA METADATA - IGUAL QUE EN downloadAtime()"""
+    if not nasa_host_reachable_once():
+        return None
+
     MAX_RETRIES = 2
     TIMEOUT = 10  # 10 segundos
 
@@ -467,7 +510,7 @@ def extract_metadata_enriquecido(results):
     metadata_enriquecidos = []
 
     # Usar ThreadPoolExecutor para paralelizar el scraping
-    MAX_WORKERS = 10  # Limitar para no saturar el servidor de NASA
+    MAX_WORKERS = int(os.getenv("SCRAPING_MAX_WORKERS", "6"))
 
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         # Enviar todas las tasks
