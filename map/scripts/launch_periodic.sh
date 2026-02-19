@@ -1,5 +1,17 @@
 #!/bin/bash
 
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+VENV_PYTHON="$PROJECT_DIR/venv/bin/python3"
+
+if [ -x "$VENV_PYTHON" ]; then
+    PYTHON_CMD="$VENV_PYTHON"
+else
+    PYTHON_CMD="python3"
+fi
+
 clean_logs() {
     local log_dir="$PROJECT_DIR/logs"
 
@@ -10,7 +22,6 @@ clean_logs() {
 
     find "$log_dir" -type f -name "*.log" -exec rm -f {} \;
     echo "All .log files in $log_dir have been removed."
-    log_custom "Log Cleanup" "All logs were removed from the logs folder" "INFO" "$LOG_WEB"
 }
 
 clean_logs
@@ -19,8 +30,8 @@ clean_logs
 TASK_ID="$1"
 
 # Run with virtualenv and show/save logs
-env RUNNING_DOWNLOAD=1 /home/jose/API-NASA/venv/bin/python3 \
-  /home/jose/API-NASA/map/scripts/backend/run_batch_processor.py \
-  /home/jose/API-NASA/map/scripts/periodic_tasks/tasks.json \
-  "$TASK_ID" 2>&1 | tee -a /home/jose/API-NASA/map/scripts/periodic_tasks/auto_log.txt
+env RUNNING_DOWNLOAD=1 "$PYTHON_CMD" \
+    "$PROJECT_DIR/map/scripts/backend/run_batch_processor.py" \
+    "$PROJECT_DIR/map/scripts/periodic_tasks/tasks.json" \
+    "$TASK_ID" 2>&1 | tee -a "$PROJECT_DIR/map/scripts/periodic_tasks/auto_log.txt"
 

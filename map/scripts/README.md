@@ -225,6 +225,60 @@ python taskManager.py \
   --daemon
 ```
 
+### Remote Execution via SSH
+
+Trigger downloads on a remote machine using a single command:
+
+```bash
+cd map/scripts
+chmod +x ssh_download.sh
+./ssh_download.sh <iss|noaa|periodic> [options]
+```
+
+**ISS Mode (Simple CLI - Direct Download to NAS)**
+
+Download ISS photos with command-line options - no tasks, no UI. **Same as web interface**:
+- Queries NASA API with bounding box
+- Scrapes nadir, altitude, camera, GeoTIFF URLs (enriched metadata)
+- Downloads directly to NAS with aria2c
+- Organizes by year/mission/camera
+
+```bash
+./ssh_download.sh iss                              # Default: region from .env (panama)
+./ssh_download.sh iss --limit 50                   # 50 photos
+./ssh_download.sh iss --region cr --limit 200     # Costa Rica, 200 photos
+```
+
+**Configurable in .env:**
+```env
+DEFAULT_REGION=panama   # Default region (cr, panama, all)
+DEFAULT_LIMIT=100       # Default photo limit
+```
+
+Available regions: `cr` (Costa Rica), `panama`, `all` (Global)
+
+**NOAA & Periodic Modes**
+
+```bash
+./ssh_download.sh noaa
+./ssh_download.sh periodic task_1744260000000
+```
+
+**Root `.env` template:**
+
+```env
+SSH_HOST=<remote-host-ip>
+SSH_USERNAME=<remote-username>
+SSH_PASSWORD=<remote-password>
+SSH_PORT=22
+```
+
+**Notes:**
+- The remote machine must have SSH with password/key authentication enabled.
+- Output streams in real-time to your local terminal (stdout/stderr over SSH).
+- ISS mode is recommended for simple, fast downloads - no tasks required.
+- Requires `sshpass` on your local machine if using password authentication (`apt install sshpass`).
+
 ## Performance Optimization
 
 - **Parallel downloads**: Backend supports batch downloads
