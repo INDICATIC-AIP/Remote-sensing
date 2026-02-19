@@ -17,14 +17,16 @@ import asyncio
 import argparse
 import json
 import sqlite3
+from pathlib import Path
 from datetime import datetime
 from typing import Dict, Optional, List, Set, Tuple
 from dotenv import load_dotenv
 
-# Cargar .env desde raíz del proyecto
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-ENV_FILE = os.path.join(ROOT_DIR, ".env")
-load_dotenv(ENV_FILE)
+# Usar config.py para robusta resolución de proyecto root
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+from config import PROJECT_ROOT as ROOT_DIR
+from config import find_project_root
+# config.py ya carga .env automáticamente
 
 # Importar clientes
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
