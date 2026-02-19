@@ -22,7 +22,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "u
 from log import log_custom
 
 #  LOG COHERENTE EN RUTA CORRECTA
-LOG_FILE = os.path.join("..", "..", "logs", "iss", "general.log")
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+LOG_FILE = os.path.join(PROJECT_ROOT, "logs", "iss", "general.log")
 
 
 def verificar_destination_descarga():
@@ -106,7 +107,9 @@ def download_imagees_aria2c_optimized(metadata, conexiones=32):
             continue
 
         # Determinar folder final directamente
-        folder_destination = determinar_folder_destination_inteligente(metadata, base_path)
+        folder_destination = determinar_folder_destination_inteligente(
+            metadata, base_path
+        )
 
         if folder_destination not in grupos_por_folder:
             grupos_por_folder[folder_destination] = []
@@ -169,7 +172,9 @@ def download_imagees_aria2c_optimized(metadata, conexiones=32):
         )
 
         # Crear file temporal de URLs
-        temp_file = os.path.join(folder_destination, f"urls_batch_{int(time.time())}.txt")
+        temp_file = os.path.join(
+            folder_destination, f"urls_batch_{int(time.time())}.txt"
+        )
 
         with open(temp_file, "w") as f:
             for url in urls:

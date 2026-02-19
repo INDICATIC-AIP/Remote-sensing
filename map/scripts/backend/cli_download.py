@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-CLI SIMPLE PARA DESCARGAR ISS FOTOS DIRECTAMENTE AL NAS
-Uso:
-  python cli_download.py [--limit LIMIT] [--region REGION] [--mode MODE]
+SIMPLE CLI TO DOWNLOAD ISS IMAGES DIRECTLY TO NAS
+Usage:
+    python cli_download.py [--limit LIMIT] [--region REGION] [--mode MODE]
 
-Ejemplos:
-  python cli_download.py                          # Default: region from .env
-  python cli_download.py --limit 50               # Últimas 50 fotos
-  python cli_download.py --region panama          # Panamá
-  python cli_download.py --limit 200 --region cr  # Costa Rica, 200 fotos
+Examples:
+    python cli_download.py                         # Default: region from .env
+    python cli_download.py --limit 50              # Last 50 images
+    python cli_download.py --region panama         # Panama region
+    python cli_download.py --limit 10 --region panama --mode night
 """
 
 import os
@@ -37,7 +37,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "u
 from log import log_custom
 
 # Configuración
-LOG_FILE = os.path.join("..", "..", "logs", "iss", "general.log")
+LOG_FILE = os.path.join(ROOT_DIR, "logs", "iss", "general.log")
 
 # Regiones preconfiguradas
 REGIONS = {
@@ -70,25 +70,25 @@ DEFAULT_LIMIT = int(os.getenv("DEFAULT_LIMIT", "100"))
 
 
 def print_header(text: str):
-    """Imprimir encabezado formateado"""
-    print("\n╭─ " + "─" * (len(text) + 2) + " ─╮")
-    print(f"│ {text} │")
-    print("╰─ " + "─" * (len(text) + 2) + " ─╯\n")
+    """Print a formatted header"""
+    print(f"\n{'=' * (len(text) + 4)}")
+    print(f"  {text}")
+    print(f"{'=' * (len(text) + 4)}\n")
 
 
 def validate_region(region: str) -> Dict:
-    """Validar y obtener configuración de región"""
+    """Validate and return region configuration"""
     region_key = region.lower()
     if region_key not in REGIONS:
         available = ", ".join(REGIONS.keys())
-        raise ValueError(f"Región '{region}' no válida. Opciones: {available}")
+        raise ValueError(f"Region '{region}' is not valid. Options: {available}")
     return REGIONS[region_key]
 
 
 async def main():
     """Función principal"""
     parser = argparse.ArgumentParser(
-        description="Descargar ISS fotos directamente al NAS",
+        description="Download ISS images directly to NAS",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
@@ -96,20 +96,20 @@ async def main():
         "--limit",
         type=int,
         default=DEFAULT_LIMIT,
-        help=f"Número de fotos a descargar (default: {DEFAULT_LIMIT})",
+        help=f"Number of images to download (default: {DEFAULT_LIMIT})",
     )
     parser.add_argument(
         "--region",
         type=str,
         default=DEFAULT_REGION,
-        help=f"Región: {', '.join(REGIONS.keys())} (default: {DEFAULT_REGION})",
+        help=f"Region: {', '.join(REGIONS.keys())} (default: {DEFAULT_REGION})",
     )
     parser.add_argument(
         "--mode",
         type=str,
-        choices=["nocturno", "diurno"],
-        default="nocturno",
-        help="Modo: nocturno o diurno (default: nocturno)",
+        choices=["night", "day"],
+        default="night",
+        help="Mode: night or day (default: night)",
     )
 
     args = parser.parse_args()
@@ -121,15 +121,15 @@ async def main():
         print(f"❌ Error: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # Imprimir inicio
+    # Start info
     print_header("CLI ISS DOWNLOAD")
-    print(f"📍 Región: {region_config['name']}")
-    print(f"📊 Límite: {args.limit} fotos")
-    print(f"🌙 Modo: {args.mode}")
+    print(f"Region: {region_config['name']}")
+    print(f"Limit: {args.limit} images")
+    print(f"Mode: {args.mode}")
 
     # Verificar destino
     base_path, is_nas, mode_str = verificar_destination_descarga()
-    print(f"💾 Destino: {mode_str}\n")
+    print(f"Destination: {mode_str}\n")
 
     log_custom(
         section="CLI Download",
@@ -140,36 +140,37 @@ async def main():
 
     try:
         # Crear cliente
-        is_nocturno = args.mode == "nocturno"
+        is_nocturno = args.mode == "night"
         client = NASAAPIClient(bounding_box=region_config, mode_nocturno=is_nocturno)
 
         # Obtener datos
-        print_header("Consultando NASA API")
+        print_header("Querying NASA API")
+        # fetch_data_inteligente returns (all_results, new_results)
         all_results, new_results = await client.fetch_data_inteligente(
             limit_imagees=args.limit
         )
 
-        print(f"✅ Consulta completada")
-        print(f"   📷 Total encontrado: {len(all_results)}")
-        print(f"   🆕 Nuevos: {len(new_results)}\n")
+        print(f"Query completed.")
+        print(f"  Total found: {len(all_results)}")
+        print(f"  New images: {len(new_results)}\n")
 
         if not new_results:
-            print("⚠️  No hay fotos nuevas para descargar.")
+            print("No new images to download.")
             log_custom(
                 section="CLI Download",
-                message=f"No había fotos nuevas. Total encontrado: {len(all_results)}",
+                message=f"No new images. Total available: {len(all_results)}",
                 level="INFO",
                 file=LOG_FILE,
             )
             return
 
         # Enriquecer metadata (scraping de nadir, altitud, cámara, GeoTIFF)
-        print_header("Enriqueciendo Metadatos")
-        print(f"📊 Extrayendo dados enriquecidos de {len(new_results)} fotos...\n")
+        print_header("Enriching Metadata")
+        print(f"Extracting enriched metadata for {len(new_results)} images...\n")
 
         log_custom(
             section="CLI Download",
-            message=f"Iniciando enriquecimiento de metadata para {len(new_results)} fotos",
+            message=f"Starting metadata enrichment for {len(new_results)} images",
             level="INFO",
             file=LOG_FILE,
         )
@@ -177,31 +178,31 @@ async def main():
         metadata_list = extract_metadata_enriquecido(new_results)
 
         # Descargar
-        print_header("Iniciando Descarga")
-        print(f"📦 Descargando {len(metadata_list)} fotos...\n")
+        print_header("Starting Download")
+        print(f"Downloading {len(metadata_list)} images...\n")
 
         log_custom(
             section="CLI Download",
-            message=f"Descargando {len(metadata_list)} fotos nuevas",
+            message=f"Downloading {len(metadata_list)} new images",
             level="INFO",
             file=LOG_FILE,
         )
 
         download_imagees_aria2c_optimized(metadata_list, conexiones=32)
 
-        print_header("Descarga Completada")
-        print(f"✅ Se descargaron {len(metadata_list)} fotos correctamente.")
-        print(f"📁 Ubicación: {base_path}\n")
+        print_header("Download Completed")
+        print(f"Successfully downloaded {len(metadata_list)} images.")
+        print(f"Location: {base_path}\n")
 
         log_custom(
             section="CLI Download",
-            message=f"Descarga completada: {len(metadata_list)} fotos",
+            message=f"Download completed: {len(metadata_list)} images",
             level="INFO",
             file=LOG_FILE,
         )
 
     except Exception as e:
-        print(f"\n❌ Error durante descarga: {str(e)}", file=sys.stderr)
+        print(f"\nError during download: {str(e)}", file=sys.stderr)
         log_custom(
             section="CLI Download Error",
             message=f"Error: {str(e)}",
