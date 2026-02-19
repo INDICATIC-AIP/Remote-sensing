@@ -35,11 +35,11 @@ from map.routes import NAS_PATH, NAS_MOUNT
 #  IMPORTAR CLIENTE PARA TAREAS PROGRAMADAS
 from task_api_client import process_task_scheduled
 
-# Cargar variables de entorno
-from dotenv import load_dotenv
+# Cargar configuración desde el módulo helper
+from config import PROJECT_ROOT, ENV_FILE, load_env_config
 
-env_file = os.path.join(PROJECT_ROOT, ".env")
-load_dotenv(env_file, override=True)
+# Asegurar que .env está cargado
+env_file, loaded = load_env_config()
 
 LIMITE_IMAGENES = 320
 
@@ -49,7 +49,7 @@ LIMITE_IMAGENES = 320
 
 API_KEY = os.getenv("NASA_API_KEY", "")
 if not API_KEY:
-    raise ValueError(f"NASA_API_KEY not configured in {env_file}")
+    raise ValueError(f"NASA_API_KEY not configured. Check {env_file}")
 API_URL = "https://eol.jsc.nasa.gov/SearchPhotos/PhotosDatabaseAPI/PhotosDatabaseAPI.pl"
 LOG_FILE = os.path.join(PROJECT_ROOT, "logs", "iss", "general.log")
 DATABASE_PATH = os.path.join(PROJECT_ROOT, "db", "metadata.db")

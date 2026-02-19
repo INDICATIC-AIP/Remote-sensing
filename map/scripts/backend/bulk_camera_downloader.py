@@ -18,8 +18,15 @@ from bs4 import BeautifulSoup
 import time
 
 # Agregar paths
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "utils")))
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+
+# Cargar configuración desde el módulo helper
+from config import PROJECT_ROOT, ENV_FILE, load_env_config
+
+# Asegurar que .env está cargado
+env_file, loaded = load_env_config()
+
 sys.path.append(PROJECT_ROOT)
 
 from nasa_api_client import obtener_imagees_nuevas_costa_rica

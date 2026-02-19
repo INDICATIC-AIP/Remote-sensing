@@ -37,16 +37,16 @@ from extract_enriched_metadata import get_nadir_altitude_camera_optimized
 from log import log_custom
 from map.routes import NAS_PATH, NAS_MOUNT
 
-# Load environment variables
-from dotenv import load_dotenv
+# Load configuration from helper module
+from config import PROJECT_ROOT, ENV_FILE, load_env_config
 
-env_file = os.path.join(PROJECT_ROOT, ".env")
-load_dotenv(env_file, override=True)
+# Ensure .env is loaded
+env_file, loaded = load_env_config()
 
 # Configuration
 API_KEY = os.getenv("NASA_API_KEY", "")
 if not API_KEY:
-    raise ValueError(f"NASA_API_KEY not configured in {env_file}")
+    raise ValueError(f"NASA_API_KEY not configured. Check {env_file}")
 LOG_FILE = os.path.join(PROJECT_ROOT, "logs", "iss", "general.log")
 DATABASE_PATH = os.path.join(PROJECT_ROOT, "db", "metadata.db")
 RETRY_INFO_FILE = os.path.join(os.path.dirname(__file__), "retry_info.json")
