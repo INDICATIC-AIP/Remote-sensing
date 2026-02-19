@@ -69,6 +69,16 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+# Build safe CLI args string to pass to remote
+CLI_ARGS=""
+for _arg in "${CLI_OPTIONS[@]:-}"; do
+  # skip empty options
+  if [ -n "$_arg" ]; then
+    # shell-escape each arg
+    CLI_ARGS+=" $(printf '%q' "$_arg")"
+  fi
+done
+
 SSH_HOST_ENV="${SSH_HOST:-}"
 SSH_USERNAME_ENV="${SSH_USERNAME:-}"
 SSH_PASSWORD_ENV="${SSH_PASSWORD:-}"
@@ -90,8 +100,18 @@ fi
 
 case "$MODE" in
   iss)
-    CLI_SCRIPT="$REMOTE_PROJECT_DIR/map/scripts/backend/cli_download.py"
-    REMOTE_CMD="set -euo pipefail; python3 '$CLI_SCRIPT' ${CLI_OPTIONS[@]}"
+    CLI_SCRIPT="map/scripts/backend/cli_download.py"
+    # Run from project root so top-level imports (package `map`) resolve.
+    # Prefer remote venv python when available and export PYTHONPATH to include project root.
+    REMOTE_CMD="set -euo pipefail; cd '$REMOTE_PROJECT_DIR'; export PYTHONPATH='$REMOTE_PROJECT_DIR':\$PYTHONPATH; \
+  # Ensure project-level and map-level logs directories exist and are writable by the user
+  mkdir -p '$REMOTE_PROJECT_DIR/logs' '$REMOTE_PROJECT_DIR/map/logs' >/dev/null 2>&1 || true; \
+  chmod u+rwx '$REMOTE_PROJECT_DIR/logs' '$REMOTE_PROJECT_DIR/map/logs' >/dev/null 2>&1 || true; \
+  if [ -x '$REMOTE_PROJECT_DIR/venv/bin/python3' ]; then \
+    '$REMOTE_PROJECT_DIR/venv/bin/python3' '$CLI_SCRIPT' $CLI_ARGS; \
+  else \
+    python3 '$CLI_SCRIPT' $CLI_ARGS; \
+  fi"
     ;;
   noaa)
     REMOTE_SCRIPT="$REMOTE_PROJECT_DIR/map/scripts/launch_noaa.sh"
