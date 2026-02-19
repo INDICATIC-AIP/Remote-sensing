@@ -9,30 +9,37 @@ from dotenv import load_dotenv
 
 def find_project_root(start_path=None):
     """
-    Find project root by searching for .env or other markers.
-    Walks up the directory tree until it finds .env, requirements.txt, or package.json
+    Find project root by prioritizing the nearest existing .env file.
+    If no .env exists, fallback to the nearest directory containing .git.
     """
     if start_path is None:
         start_path = os.path.abspath(os.path.dirname(__file__))
 
     current = Path(start_path)
 
-    # Markers that identify project root
-    markers = [".env", ".git", "requirements.txt", "package.json"]
-
-    # Search up to 5 levels up
-    for _ in range(5):
-        for marker in markers:
-            if (current / marker).exists():
-                return str(current)
+    # First pass: search for an actual .env file upwards.
+    for _ in range(10):
+        if (current / ".env").exists():
+            return str(current)
 
         parent = current.parent
-        if parent == current:  # Reached filesystem root
+        if parent == current:
             break
         current = parent
 
-    # Fallback to a reasonable default
-    return str(Path(__file__).parent.parent.parent)
+    # Second pass: fallback to nearest git root.
+    current = Path(start_path)
+    for _ in range(10):
+        if (current / ".git").exists():
+            return str(current)
+
+        parent = current.parent
+        if parent == current:
+            break
+        current = parent
+
+    # Final fallback to repository root layout from this file.
+    return str(Path(__file__).resolve().parents[3])
 
 
 def load_env_config():
