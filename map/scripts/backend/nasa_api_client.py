@@ -30,7 +30,7 @@ if not API_KEY:
     raise ValueError(f"NASA_API_KEY not configured. Check {env_file}")
 API_URL = "https://eol.jsc.nasa.gov/SearchPhotos/PhotosDatabaseAPI/PhotosDatabaseAPI.pl"
 LOG_FILE = os.path.join(PROJECT_ROOT, "logs", "iss", "general.log")
-DATABASE_PATH = os.path.join(PROJECT_ROOT, "db", "metadata.db")
+DATABASE_PATH = os.path.join(PROJECT_ROOT, "map", "db", "metadata.db")
 
 # Configuración por defecto de Costa Rica
 DEFAULT_BOUNDING_BOX = {"latMin": 6.1, "latMax": 10.8, "lonMin": -82.9, "lonMax": -77.3}

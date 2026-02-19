@@ -26,7 +26,7 @@ if not API_KEY:
     raise ValueError(f"NASA_API_KEY not configured. Check {env_file}")
 API_URL = "https://eol.jsc.nasa.gov/SearchPhotos/PhotosDatabaseAPI/PhotosDatabaseAPI.pl"
 LOG_FILE = os.path.join(PROJECT_ROOT, "logs", "iss", "general.log")
-DATABASE_PATH = os.path.join(PROJECT_ROOT, "db", "metadata.db")
+DATABASE_PATH = os.path.join(PROJECT_ROOT, "map", "db", "metadata.db")
 
 #  LÍMITE DESDE run_batch_processor.py
 LIMITE_IMAGENES = 15

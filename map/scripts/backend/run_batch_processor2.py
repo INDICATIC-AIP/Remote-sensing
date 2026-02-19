@@ -48,7 +48,7 @@ API_KEY = os.getenv("NASA_API_KEY", "")
 if not API_KEY:
     raise ValueError(f"NASA_API_KEY not configured. Check {env_file}")
 LOG_FILE = os.path.join(PROJECT_ROOT, "logs", "iss", "general.log")
-DATABASE_PATH = os.path.join(PROJECT_ROOT, "db", "metadata.db")
+DATABASE_PATH = os.path.join(PROJECT_ROOT, "map", "db", "metadata.db")
 RETRY_INFO_FILE = os.path.join(os.path.dirname(__file__), "retry_info.json")
 CURRENT_EXECUTION_FILE = os.path.join(
     os.path.dirname(__file__), "current_execution.json"

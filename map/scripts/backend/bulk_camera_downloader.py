@@ -39,7 +39,9 @@ LOG_FILE = os.path.join(PROJECT_ROOT, "logs", "iss", "general.log")
 def get_camera_output_folder():
     """Determinar folder de salida para camera metadata"""
     try:
-        nas_available = os.path.ismount(NAS_MOUNT) and os.path.exists(NAS_PATH)
+        nas_available = os.path.exists(NAS_PATH) and os.access(
+            NAS_PATH, os.R_OK | os.W_OK
+        )
 
         if nas_available:
             camera_data_path = os.path.join(NAS_PATH, "camera_data")

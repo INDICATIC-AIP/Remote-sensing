@@ -30,7 +30,7 @@ def verificar_destination_descarga():
     """
     VERIFICAR DESTINO: NAS (production) o LOCAL (solo tests)
     """
-    nas_available = os.path.ismount(NAS_MOUNT) and os.path.exists(NAS_PATH)
+    nas_available = os.path.exists(NAS_PATH) and os.access(NAS_PATH, os.R_OK | os.W_OK)
 
     if nas_available:
         #  PRODUCCIÓN: Descargar directamente al NAS
