@@ -491,6 +491,7 @@ async def run_task_inteligente(task):
         total_results = task_stats.get("total_results", 0)
 
         print("\n Query summary (vs DB):")
+        print(f"  Raw results: {total_results}")
         print(f"  Unique candidates: {unique_total}")
         print(f"  Already in DB: {existing_in_db}")
         print(f"  New to process: {new_total}")
