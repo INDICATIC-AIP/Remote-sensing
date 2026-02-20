@@ -278,7 +278,8 @@ class MetadataCRUD:
         center_lat,
         center_lon,
         nadir_center,
-        altitudee,
+        altitude=None,
+        altitudee=None,
     ):
         """
         Create a geographic location record associated with an image.
@@ -290,7 +291,7 @@ class MetadataCRUD:
             center_lat (float): Center latitude.
             center_lon (float): Center longitude.
             nadir_center (str): Position description.
-            altitudee (float): Capture altitude.
+            altitude (float): Capture altitude.
 
         Returns:
             MapLocation: Created object.
@@ -302,7 +303,7 @@ class MetadataCRUD:
             center_lat=center_lat,
             center_lon=center_lon,
             nadir_center=nadir_center,
-            altitudee=altitudee,
+            altitude=altitude if altitude is not None else altitudee,
         )
         self.session.add(new_location)
         self.session.commit()

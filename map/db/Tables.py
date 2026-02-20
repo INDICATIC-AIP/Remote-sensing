@@ -80,7 +80,7 @@ class MapLocation(Base):
         center_lat (float): Center latitude.
         center_lon (float): Center longitude.
         nadir_center (str): Description of nadir/center position.
-        altitudee (float): Capture altitude.
+        altitude (float): Capture altitude.
 
     Relationships:
         image (Image): Image associated with this location.
@@ -94,7 +94,7 @@ class MapLocation(Base):
     center_lat = Column(Float, nullable=True)
     center_lon = Column(Float, nullable=True)
     nadir_center = Column(String(50), nullable=True)
-    altitudee = Column(Float, nullable=True)
+    altitude = Column("altitude", Float, nullable=True)
 
     image = relationship("Image", back_populates="location_data")
 

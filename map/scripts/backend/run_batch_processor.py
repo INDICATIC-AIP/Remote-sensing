@@ -586,10 +586,7 @@ async def run_task_inteligente(task):
         print(f" Scraping completed: {len(metadata)} metadata enriquecidos")
 
         #  DESCARGAR Y PROCESAR IMÁGENES
-        print(" Iniciando descarga de imágenes...")
-        download_imagees_aria2c_optimized(metadata, conexiones=32)
-
-        print(" Procesando imágenes en base de datos...")
+        print(" Running download + DB workflow...")
         processor = HybridOptimizedProcessor(database_path=DATABASE_PATH, batch_size=75)
         processor.process_complete_workflow(metadata)
 

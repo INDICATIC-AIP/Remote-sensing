@@ -489,7 +489,7 @@ class HybridOptimizedProcessor:
                 "center_lat": self._to_float(metadata.get("CENTER_LAT")),
                 "center_lon": self._to_float(metadata.get("CENTER_LON")),
                 "nadir_center": metadata.get("NADIR_CENTER"),
-                "altitudee": self._to_float(metadata.get("ALTITUD")),
+                "altitude": self._to_float(metadata.get("ALTITUD")),
                 "camera": metadata.get("CAMARA"),
                 "focal_length": self._to_float(metadata.get("LONGITUD_FOCAL")),
                 "tilt": metadata.get("INCLINACION"),
@@ -614,7 +614,7 @@ class HybridOptimizedProcessor:
                                 center_lat=item["center_lat"],
                                 center_lon=item["center_lon"],
                                 nadir_center=item["nadir_center"],
-                                altitudee=item["altitudee"],
+                                altitude=item["altitude"],
                             )
 
                             crud.create_camera_information(
