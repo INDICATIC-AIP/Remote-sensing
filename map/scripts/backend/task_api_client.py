@@ -247,6 +247,9 @@ class TaskAPIClient:
             },
             {
               "source": "frames",
+                    "task_id": task_id,
+                    "total_results": 0,
+                    "unique_results": 0,
               "query": "frames|ptime|ge|050000|frames|ptime|le|103000|frames|lat|ge|6.1...",
               "return": "frames|mission|frames|roll|frames|frame|frames|pdate|frames|ptime...",
               "modeNocturno": "050000-103000"
@@ -254,6 +257,9 @@ class TaskAPIClient:
           ],
           "time": "14:04",
           "frecuencia": "ONCE"
+                    "task_id": task_id,
+                    "total_results": len(todos_los_results),
+                    "unique_results": len(results_unicos),
         }
         """
         global LAST_TASK_STATS
@@ -371,7 +377,7 @@ class TaskAPIClient:
             if not todos_los_results:
                 log_custom(
                     section="Task API Client",
-                    message="No se obtuvieron results de ninguna consulta",
+                    message="No API results from any query (network/query failure likely)",
                     level="WARNING",
                     file=LOG_FILE,
                 )
@@ -406,7 +412,7 @@ class TaskAPIClient:
             if not results_nuevos:
                 log_custom(
                     section="Task API Client",
-                    message="Todas las imágenes ya están en la base de datos",
+                    message="All images already exist in the database",
                     level="INFO",
                     file=LOG_FILE,
                 )

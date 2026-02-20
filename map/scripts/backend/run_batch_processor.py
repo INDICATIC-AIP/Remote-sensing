@@ -488,11 +488,14 @@ async def run_task_inteligente(task):
             "existing_in_db", max(unique_total - len(results_nuevos), 0)
         )
         new_total = task_stats.get("new_results", len(results_nuevos))
+        total_results = task_stats.get("total_results", 0)
 
         print("\n Query summary (vs DB):")
         print(f"  Unique candidates: {unique_total}")
         print(f"  Already in DB: {existing_in_db}")
         print(f"  New to process: {new_total}")
+        if total_results == 0:
+            print("  Note: No API results returned (network/query failure likely).")
 
         if not results_nuevos:
             log_custom(
