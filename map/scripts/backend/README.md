@@ -16,7 +16,7 @@ This module provides:
 
 ## Core Components
 
-### 1. **run_batch_processor2.py**
+### 1. **run_batch_processor.py**
 Main integrated processor that orchestrates the complete workflow.
 
 **Features**:
@@ -29,16 +29,16 @@ Main integrated processor that orchestrates the complete workflow.
 **Usage**:
 ```bash
 # Autonomous mode with limit
-python run_batch_processor2.py
+python run_batch_processor.py
 
 # Process specific task
-python run_batch_processor2.py task_123456789
+python run_batch_processor.py tasks.json
 
 # Costa Rica focused search
-python run_batch_processor2.py costa_rica
+python run_batch_processor.py tasks.json
 
 # Process from metadata file
-python run_batch_processor2.py metadata.json
+python run_batch_processor.py metadata.json
 ```
 
 **Workflow**:
@@ -187,13 +187,13 @@ BATCH_SIZE_DB = 75  # Database batch size
 ### Autonomous Processing
 ```bash
 # Run complete pipeline autonomously
-python run_batch_processor2.py
+python run_batch_processor.py tasks.json
 ```
 
 ### Manual Metadata Processing
 ```bash
 # Process specific metadata file
-python run_batch_processor2.py enriched_metadata.json
+python run_batch_processor.py enriched_metadata.json
 ```
 
 ### Image Download Only

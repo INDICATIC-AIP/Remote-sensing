@@ -101,17 +101,28 @@ fi
 case "$MODE" in
   iss)
     BATCH_SCRIPT="map/scripts/backend/run_batch_processor.py"
-    TASKS_FILE="${ISS_TASKS_FILE:-$REMOTE_PROJECT_DIR/map/scripts/periodic_tasks/tasks.json}"
+    TASKS_FILE="${ISS_TASKS_FILE:-$REMOTE_PROJECT_DIR/map/scripts/periodic_tasks/tasks_panama_night.json}"
+    ISS_LIMIT_VALUE="0"
+    for ((i=0; i<${#CLI_OPTIONS[@]}; i++)); do
+      if [ "${CLI_OPTIONS[$i]}" = "--limit" ] && [ $((i + 1)) -lt ${#CLI_OPTIONS[@]} ]; then
+        ISS_LIMIT_VALUE="${CLI_OPTIONS[$((i + 1))]}"
+      fi
+    done
+    if ! [[ "$ISS_LIMIT_VALUE" =~ ^[0-9]+$ ]]; then
+      echo "Invalid --limit value: $ISS_LIMIT_VALUE" >&2
+      exit 1
+    fi
     # Use existing periodic flow (task_api_client + extract_enriched_metadata + imageProcessor).
-    # ISS CLI options like --limit/--region are accepted for compatibility but ignored here.
+    # Fixed params: Panama + night windows from tasks_panama_night.json.
+    # Optional: --limit N (0 or omitted = sin límite).
     REMOTE_CMD="set -euo pipefail; cd '$REMOTE_PROJECT_DIR'; export PYTHONPATH='$REMOTE_PROJECT_DIR':\$PYTHONPATH; \
   # Ensure project-level and map-level logs directories exist and are writable by the user
   mkdir -p '$REMOTE_PROJECT_DIR/logs' '$REMOTE_PROJECT_DIR/map/logs' >/dev/null 2>&1 || true; \
   chmod u+rwx '$REMOTE_PROJECT_DIR/logs' '$REMOTE_PROJECT_DIR/map/logs' >/dev/null 2>&1 || true; \
   if [ -x '$REMOTE_PROJECT_DIR/venv/bin/python3' ]; then \
-    RUNNING_DOWNLOAD=1 '$REMOTE_PROJECT_DIR/venv/bin/python3' '$BATCH_SCRIPT' '$TASKS_FILE'; \
+    ISS_LIMIT='$ISS_LIMIT_VALUE' RUNNING_DOWNLOAD=1 '$REMOTE_PROJECT_DIR/venv/bin/python3' '$BATCH_SCRIPT' '$TASKS_FILE'; \
   else \
-    RUNNING_DOWNLOAD=1 python3 '$BATCH_SCRIPT' '$TASKS_FILE'; \
+    ISS_LIMIT='$ISS_LIMIT_VALUE' RUNNING_DOWNLOAD=1 python3 '$BATCH_SCRIPT' '$TASKS_FILE'; \
   fi"
     ;;
   noaa)

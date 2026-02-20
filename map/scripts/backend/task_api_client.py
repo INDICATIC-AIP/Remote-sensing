@@ -28,8 +28,19 @@ API_URL = "https://eol.jsc.nasa.gov/SearchPhotos/PhotosDatabaseAPI/PhotosDatabas
 LOG_FILE = os.path.join(PROJECT_ROOT, "logs", "iss", "general.log")
 DATABASE_PATH = os.path.join(PROJECT_ROOT, "map", "db", "metadata.db")
 
-#  LÍMITE DESDE run_batch_processor.py
-LIMITE_IMAGENES = 15
+#  LÍMITE CONFIGURABLE DESDE ENTORNO (0 = sin límite)
+try:
+    LIMITE_IMAGENES = int(os.getenv("ISS_LIMIT", "0"))
+except ValueError:
+    LIMITE_IMAGENES = 0
+
+    LAST_TASK_STATS = {
+        "task_id": "unknown",
+        "total_results": 0,
+        "unique_results": 0,
+        "existing_in_db": 0,
+        "new_results": 0,
+    }
 
 
 class TaskAPIClient:
@@ -245,11 +256,12 @@ class TaskAPIClient:
           "frecuencia": "ONCE"
         }
         """
+        global LAST_TASK_STATS
         task_id = task.get("id", "unknown")
 
         log_custom(
             section="Task API Client",
-            message=f"Procesando task scheduled: {task_id}",
+            message=f"Processing scheduled task: {task_id}",
             level="INFO",
             file=LOG_FILE,
         )
@@ -263,7 +275,7 @@ class TaskAPIClient:
                 if task.get("query") and task.get("return"):
                     log_custom(
                         section="Task API Client",
-                        message=f"Usando formato legacy (query/return directo) para task {task_id}",
+                        message=f"Using legacy task format (direct query/return) for task {task_id}",
                         level="WARNING",
                         file=LOG_FILE,
                     )
@@ -282,10 +294,18 @@ class TaskAPIClient:
                     if LIMITE_IMAGENES > 0 and len(results_nuevos) > LIMITE_IMAGENES:
                         results_nuevos = results_nuevos[:LIMITE_IMAGENES]
 
+                    LAST_TASK_STATS = {
+                        "task_id": task_id,
+                        "total_results": len(raw_data),
+                        "unique_results": len(results),
+                        "existing_in_db": len(nasa_ids_existentes),
+                        "new_results": len(results_nuevos),
+                    }
+
                     return results_nuevos
                 else:
                     raise ValueError(
-                        "Tarea debe tener 'consultas' array o 'query/return' legacy"
+                        "Task must include 'consultas' array or legacy 'query/return' fields"
                     )
 
             # 2. Procesar todas las consultas
@@ -355,6 +375,13 @@ class TaskAPIClient:
                     level="WARNING",
                     file=LOG_FILE,
                 )
+                LAST_TASK_STATS = {
+                    "task_id": task_id,
+                    "total_results": 0,
+                    "unique_results": 0,
+                    "existing_in_db": 0,
+                    "new_results": 0,
+                }
                 return []
 
             # 6. Deduplicar results combinados
@@ -383,6 +410,13 @@ class TaskAPIClient:
                     level="INFO",
                     file=LOG_FILE,
                 )
+                LAST_TASK_STATS = {
+                    "task_id": task_id,
+                    "total_results": len(todos_los_results),
+                    "unique_results": len(results_unicos),
+                    "existing_in_db": len(nasa_ids_existentes),
+                    "new_results": 0,
+                }
                 return []
 
             # 9.  APLICAR LÍMITE
@@ -401,6 +435,14 @@ class TaskAPIClient:
                 level="INFO",
                 file=LOG_FILE,
             )
+
+            LAST_TASK_STATS = {
+                "task_id": task_id,
+                "total_results": len(todos_los_results),
+                "unique_results": len(results_unicos),
+                "existing_in_db": len(nasa_ids_existentes),
+                "new_results": len(results_nuevos),
+            }
 
             return results_nuevos
 
@@ -431,6 +473,10 @@ async def process_task_scheduled(task: Dict) -> List[Dict]:
     """
     client = TaskAPIClient()
     return await client.process_task_scheduled(task)
+
+
+def get_last_task_stats() -> Dict:
+    return LAST_TASK_STATS.copy()
 
 
 # ============================================================================

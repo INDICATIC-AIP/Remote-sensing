@@ -1,0 +1,35 @@
+[
+  {
+    "id": "task_panama_night_cli",
+    "consultas": [
+      {
+        "source": "frames",
+        "query": "frames|ptime|ge|003000|frames|ptime|le|045959|frames|lat|ge|7.2|frames|lat|le|9.6|frames|lon|ge|-82.9|frames|lon|le|-77.2",
+        "return": "frames|mission|frames|roll|frames|frame|frames|pdate|frames|ptime|frames|lat|frames|lon|frames|nlat|frames|nlon|frames|camera|frames|film|images|directory|images|filename|images|width|images|height"
+      },
+      {
+        "source": "frames",
+        "query": "frames|ptime|ge|050000|frames|ptime|le|103000|frames|lat|ge|7.2|frames|lat|le|9.6|frames|lon|ge|-82.9|frames|lon|le|-77.2",
+        "return": "frames|mission|frames|roll|frames|frame|frames|pdate|frames|ptime|frames|lat|frames|lon|frames|nlat|frames|nlon|frames|camera|frames|film|images|directory|images|filename|images|width|images|height"
+      },
+      {
+        "source": "nadir",
+        "query": "nadir|ptime|ge|003000|nadir|ptime|le|045959|nadir|lat|ge|7.2|nadir|lat|le|9.6|nadir|lon|ge|-82.9|nadir|lon|le|-77.2",
+        "return": "nadir|mission|nadir|roll|nadir|frame|nadir|pdate|nadir|ptime|nadir|lat|nadir|lon|nadir|azi|nadir|elev|images|directory|images|filename|images|width|images|height"
+      },
+      {
+        "source": "nadir",
+        "query": "nadir|ptime|ge|050000|nadir|ptime|le|103000|nadir|lat|ge|7.2|nadir|lat|le|9.6|nadir|lon|ge|-82.9|nadir|lon|le|-77.2",
+        "return": "nadir|mission|nadir|roll|nadir|frame|nadir|pdate|nadir|ptime|nadir|lat|nadir|lon|nadir|azi|nadir|elev|images|directory|images|filename|images|width|images|height"
+      },
+      {
+        "source": "mlcoord",
+        "query": "mlcoord|lat|ge|7.2|mlcoord|lat|le|9.6|mlcoord|lon|ge|-82.9|mlcoord|lon|le|-77.2",
+        "return": "mlcoord|mission|mlcoord|roll|mlcoord|frame|mlcoord|lat|mlcoord|lon|mlcoord|orientation|images|directory|images|filename|images|width|images|height"
+      }
+    ],
+    "hora": "00:00",
+    "frecuencia": "ONCE",
+    "intervalo": 1
+  }
+]

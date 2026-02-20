@@ -479,9 +479,20 @@ async def run_task_inteligente(task):
             file=LOG_FILE,
         )
 
-        from task_api_client import process_task_scheduled
+        from task_api_client import process_task_scheduled, get_last_task_stats
 
         results_nuevos = await process_task_scheduled(task)
+        task_stats = get_last_task_stats()
+        unique_total = task_stats.get("unique_results", len(results_nuevos))
+        existing_in_db = task_stats.get(
+            "existing_in_db", max(unique_total - len(results_nuevos), 0)
+        )
+        new_total = task_stats.get("new_results", len(results_nuevos))
+
+        print("\n Query summary (vs DB):")
+        print(f"  Unique candidates: {unique_total}")
+        print(f"  Already in DB: {existing_in_db}")
+        print(f"  New to process: {new_total}")
 
         if not results_nuevos:
             log_custom(
@@ -492,6 +503,32 @@ async def run_task_inteligente(task):
             )
             print(" No hay imágenes nuevas para process")
             return
+
+        ask_confirmation = os.getenv("ISS_CONFIRM", "1") == "1" and sys.stdin.isatty()
+        if ask_confirmation:
+            while True:
+                try:
+                    answer = (
+                        input("Continue with scraping/download? (s/n): ")
+                        .strip()
+                        .lower()
+                    )
+                except EOFError:
+                    answer = "n"
+
+                if answer in ("s", "y"):
+                    break
+                if answer == "n":
+                    log_custom(
+                        section="Task Confirmation",
+                        message="Execution cancelled by user after new-vs-db summary",
+                        level="WARNING",
+                        file=LOG_FILE,
+                    )
+                    print(" Cancelled by user.")
+                    return
+
+                print(" Please answer with 's' (yes) or 'n' (no).")
 
         print(f" Task API Client devolvió {len(results_nuevos)} imágenes nuevas")
 
