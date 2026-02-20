@@ -67,16 +67,17 @@ class TaskAPIClient:
 
     def fetch_from_api(self, query: str, return_fields: str) -> List[Dict]:
         """Consultar API de NASA con query y return directos"""
+        params = {"query": query, "return": return_fields, "key": self.api_key}
+        request_url = requests.Request("GET", self.api_url, params=params).prepare().url
+
         log_custom(
             section="Task API Client",
-            message=f"Consultando API con query: {query[:50]}...",
+            message=f"API URL: {request_url}",
             level="INFO",
             file=LOG_FILE,
         )
 
         try:
-            params = {"query": query, "return": return_fields, "key": self.api_key}
-
             response = requests.get(self.api_url, params=params, timeout=30)
             response.raise_for_status()
 
@@ -91,6 +92,15 @@ class TaskAPIClient:
                 )
                 return []
 
+            if len(raw_data) == 0:
+                log_custom(
+                    section="Task API Client",
+                    message=f"No results for URL: {request_url}",
+                    level="WARNING",
+                    file=LOG_FILE,
+                )
+                return []
+
             log_custom(
                 section="Task API Client",
                 message=f"API devolvió {len(raw_data)} results totales",
@@ -100,11 +110,11 @@ class TaskAPIClient:
 
             return raw_data
 
-        except Exception as e:
+        except Exception:
             log_custom(
                 section="Task API Client",
-                message=f"Error consultando API: {str(e)}",
-                level="ERROR",
+                message=f"Request failed for URL: {request_url}",
+                level="WARNING",
                 file=LOG_FILE,
             )
             return []

@@ -150,7 +150,7 @@ if [ -n "$SSH_PASSWORD_ENV" ]; then
     exit 1
   fi
 
-  sshpass -p "$SSH_PASSWORD_ENV" ssh -p "$SSH_PORT_ENV" -o StrictHostKeyChecking=accept-new "$REMOTE_TARGET" "bash -lc \"$REMOTE_CMD\""
+  sshpass -p "$SSH_PASSWORD_ENV" ssh -tt -p "$SSH_PORT_ENV" -o StrictHostKeyChecking=accept-new "$REMOTE_TARGET" "bash -lc \"$REMOTE_CMD\""
 else
-  ssh -p "$SSH_PORT_ENV" "$REMOTE_TARGET" "bash -lc \"$REMOTE_CMD\""
+  ssh -tt -p "$SSH_PORT_ENV" "$REMOTE_TARGET" "bash -lc \"$REMOTE_CMD\""
 fi
