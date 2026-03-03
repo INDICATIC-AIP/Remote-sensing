@@ -288,7 +288,13 @@ def verificar_nasa_ids_en_bd(nasa_ids):
 
             #  USAR TABLA Image CON nasa_id (minúscula)
             placeholders = ",".join("?" * len(nasa_ids))
-            query = f"SELECT nasa_id FROM Image WHERE nasa_id IN ({placeholders})"
+            query = f"""
+                SELECT nasa_id
+                FROM Image
+                WHERE nasa_id IN ({placeholders})
+                  AND path IS NOT NULL
+                  AND TRIM(path) <> ''
+            """
 
             cursor.execute(query, nasa_ids)
             existentes = {row[0] for row in cursor.fetchall()}

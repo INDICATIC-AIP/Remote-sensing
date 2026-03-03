@@ -346,6 +346,27 @@ def _get_mission_from_metadata(metadata: Dict) -> str:
         return "UNKNOWN"
 
 
+def _normalize_filename_from_url(
+    url: str, nasa_id: Optional[str] = None
+) -> Optional[str]:
+    """Normalizar filename para que coincida con el usado en descarga."""
+    if not url:
+        return None
+
+    url_path = url.split("?", 1)[0]
+    raw_basename = os.path.basename(url_path)
+    name, ext = os.path.splitext(raw_basename)
+
+    is_geotiff_url = "geotiff" in url.lower() or "getgeotiff.pl" in url.lower()
+    if is_geotiff_url and nasa_id:
+        return f"{nasa_id}.tif"
+
+    if ext == "":
+        return raw_basename + ".jpg"
+
+    return raw_basename
+
+
 class HybridOptimizedProcessor:
     """Procesador híbrido con descarga directa al destination final"""
 
@@ -520,18 +541,36 @@ class HybridOptimizedProcessor:
     def _find_organized_file_path(self, metadata: Dict, base_path: str) -> str:
         """Buscar file en la estructura organizada (NAS o Local)"""
         url = metadata.get("URL")
-        if not url:
+        nasa_id = metadata.get("NASA_ID")
+        if not url and not nasa_id:
             return None
 
-        filename = os.path.basename(url)
+        filename = _normalize_filename_from_url(url, nasa_id)
         year = _get_year_from_metadata(metadata)
         mission = _get_mission_from_metadata(metadata)
-        camera = metadata.get("CAMARA") or "Sin_Camara"
+        camera = metadata.get("CAMARA") or "Sin_Camera"
+
+        if nasa_id and not filename:
+            filename = f"{nasa_id}.jpg"
 
         #  RUTA SEGÚN DESTINO (NAS o Local)
         final_path = os.path.join(base_path, str(year), mission, camera, filename)
 
-        return final_path if os.path.exists(final_path) else None
+        if os.path.exists(final_path):
+            return final_path
+
+        # Fallback robusto: buscar por NASA_ID en la estructura organizada
+        if nasa_id:
+            mission_dir = os.path.join(base_path, str(year), mission)
+            if os.path.exists(mission_dir):
+                for root, _, files in os.walk(mission_dir):
+                    for file in files:
+                        if file.startswith(f"{nasa_id}."):
+                            candidate = os.path.join(root, file)
+                            if os.path.exists(candidate):
+                                return candidate
+
+        return None
 
     def _write_to_database_optimized(self, prepared_data: List[Dict]):
         """ESCRITURA SQLITE CON LOGS COHERENTES"""
