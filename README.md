@@ -414,7 +414,7 @@ The system provides multiple visualization interfaces for data exploration:
 
 
 
-![Map Viewer](./docs/ui.png)
+![Map Viewer](./docs/UI.png)
 *Interactive Leaflet-based map with satellite data*
 
 ![NOAA Dashboard](./docs/ui(1).png)
